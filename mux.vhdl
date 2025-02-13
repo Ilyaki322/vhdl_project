@@ -14,7 +14,7 @@ use work.mux_p;
 
 entity mux is
     Generic (
-        WIDTH : integer := 8;
+        WIDTH : integer := 16;
         N : integer := 4 -- number of input ports
     );
     Port(

@@ -12,7 +12,7 @@ entity template is
     );
 end template;
 
-architecture behevioural of template is
+architecture behavioral of template is
 begin
 
-end behevioural;
+end behavioral;

@@ -4,7 +4,8 @@ use ieee.numeric_std.all;
 
 entity ram is
     Generic (
-        WIDTH : integer := 8
+        WIDTH : integer := 16;
+        SIZE : integer := 8
     );
     Port(
         clk : in std_logic;
@@ -20,7 +21,7 @@ end ram;
 
 architecture behavioral of ram is
 
-    type ram_t is array(0 to (2**WIDTH) - 1) of std_logic_vector(WIDTH-1 downto 0);
+    type ram_t is array(0 to (2**SIZE) - 1) of std_logic_vector(WIDTH-1 downto 0);
     signal data : ram_t := (others => (others => '0'));
 
 begin
