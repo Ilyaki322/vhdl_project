@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_textio.all;
 
 entity general_register is
     Generic (
@@ -33,9 +34,13 @@ begin
         if rising_edge(clk) then
             if re = '0' then
                 data_bus <= data;
+                report "REGISTER READ: Data output on bus: " & to_hstring(data)
+                        severity note;
             end if;
             if we = '0' then
                 data <= data_bus;
+                report "REGISTER WRITE: Data written from bus: " & to_hstring(data_bus)
+                        severity note;
             end if;
         end if;
     end process;

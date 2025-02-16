@@ -149,7 +149,7 @@ begin
 
     reg_decoder : decoder
     generic map(REG_DECODER_WIDTH)
-    port map(enable, clk, reset, inst_reg_data(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-5), reg_address);
+    port map(enable, clk, reset, inst_reg_data(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4), reg_address);
 
 
 end behavioral;
