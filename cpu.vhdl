@@ -14,6 +14,7 @@ entity cpu is
         clk : in std_logic;
         reset : in std_logic;
 
+        external_en : in std_logic;
         external_data  : in std_logic_vector(WIDTH-1 downto 0);
         external_addr  : in std_logic_vector(WIDTH-1 downto 0);
         --external_addr  : in std_logic_vector(MEM_SIZE-1 downto 0);
@@ -29,16 +30,20 @@ architecture behavioral of cpu is
     signal data_bus : std_logic_vector(WIDTH-1 downto 0);
     signal main_ram_bus : std_logic_vector(WIDTH-1 downto 0);
 
-    signal reg1_we, reg1_re : std_logic;
+    signal reg1_we : std_logic := '1';
+    signal reg1_re : std_logic := '1';
     signal reg1_data : std_logic_vector(WIDTH-1 downto 0);
 
-    signal reg2_we, reg2_re : std_logic;
+    signal reg2_we : std_logic := '1';
+    signal reg2_re : std_logic := '1';
     signal reg2_data : std_logic_vector(WIDTH-1 downto 0);
 
-    signal reg3_we, reg3_re : std_logic;
+    signal reg3_we : std_logic := '1';
+    signal reg3_re : std_logic := '1';
     signal reg3_data : std_logic_vector(WIDTH-1 downto 0);
 
-    signal reg4_we, reg4_re : std_logic;
+    signal reg4_we : std_logic := '1';
+    signal reg4_re : std_logic := '1';
     signal reg4_data : std_logic_vector(WIDTH-1 downto 0);
 
     signal main_memory_re : std_logic := '1';    
@@ -187,7 +192,7 @@ begin
 
     inst_stack : ram
     generic map(WIDTH, MEM_SIZE)
-    port map(clk, reset, instruction_stack_re, instruction_stack_we, progCounterBus, instruction_bus, external_data);
+    port map(clk, reset, instruction_stack_re, external_en, progCounterBus, instruction_bus, external_data);
 
     reg1 : general_register
     generic map(WIDTH)

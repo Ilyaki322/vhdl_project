@@ -119,8 +119,8 @@ begin
     main_data_bus_mux_sel <= decoder_bus(3);
 
     ram_address <= inst_reg_data(7 downto 0); -- make generic?
-    main_mem_re <= exec_en and (decoder_bus(1) or decoder_bus(3));
-    main_mem_we <= exec_en and decoder_bus(2);
+    main_mem_re <= not (exec_en and (decoder_bus(1) or decoder_bus(3)));
+    main_mem_we <= not (exec_en and decoder_bus(2));
 
     --reg1_we <= reg1_we_sig;
     --reg1_re <= reg1_re_sig;
@@ -130,14 +130,14 @@ begin
     --reg3_re <= reg3_re_sig;
     --reg4_we <= reg4_we_sig;
     --reg4_re <= reg4_re_sig;
-    reg1_we <= exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(0);
-    reg1_re <= exec_en and decoder_bus(2) and reg_address(0);
-    reg2_we <= exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1);
-    reg2_re <= exec_en and decoder_bus(2) and reg_address(1);
-    reg3_we <= exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2);
-    reg3_re <= exec_en and decoder_bus(2) and reg_address(2);
-    reg4_we <= exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(3);
-    reg4_re <= exec_en and decoder_bus(2) and reg_address(3);
+    reg1_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(0));
+    reg1_re <= not (exec_en and decoder_bus(2) and reg_address(0));
+    reg2_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1));
+    reg2_re <= not (exec_en and decoder_bus(2) and reg_address(1));
+    reg3_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2));
+    reg3_re <= not (exec_en and decoder_bus(2) and reg_address(2));
+    reg4_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(3));
+    reg4_re <= not (exec_en and decoder_bus(2) and reg_address(3));
 
     inst_reg : general_register
     generic map(WIDTH)

@@ -10,19 +10,21 @@ end cpuTB;
 architecture loadprog of cpuTB is
 
     component cpu
-        Generic (
-            WIDTH : integer := 16;
-            MEM_SIZE : integer := 16
-        );
-        Port(
-            enable, load : in std_logic;
-            clk : in std_logic;
-            reset : in std_logic;
+    Generic (
+        WIDTH : integer := 16;
+        MEM_SIZE : integer := 16
+    );
+    Port(
+        enable, load : in std_logic;
+        clk : in std_logic;
+        reset : in std_logic;
 
-            external_data  : in std_logic_vector(WIDTH-1 downto 0);
-            external_addr  : in std_logic_vector(WIDTH-1 downto 0);
-            external_load : in std_logic  -- '0' = load, '1' = run
-        );
+        external_en : in std_logic;
+        external_data  : in std_logic_vector(WIDTH-1 downto 0);
+        external_addr  : in std_logic_vector(WIDTH-1 downto 0);
+        --external_addr  : in std_logic_vector(MEM_SIZE-1 downto 0);
+        external_load : in std_logic  -- '0' = load, '1' = run
+    );
     end component;
     constant WIDTH : integer := 16;
     constant MEM_SIZE : integer := 16;
@@ -34,6 +36,7 @@ architecture loadprog of cpuTB is
     signal external_data_tb : std_logic_vector(WIDTH-1 downto 0);
     signal external_addr_tb : std_logic_vector(MEM_SIZE-1 downto 0);
     signal external_load_tb : std_logic := '0';
+    signal external_en_tb   : std_logic := '1';
 
     -- Clock Period
     constant clk_period : time := 10 ns;
@@ -48,6 +51,7 @@ begin
             load_tb,
             clk_tb ,
             reset_tb,
+            external_en_tb,
             external_data_tb,
             external_addr_tb,
             external_load_tb
@@ -74,8 +78,7 @@ begin
         report "System RESET complete.";
 
         wait for 20 ns;
-        enable_tb <= '1';
-        wait;
+        enable_tb <= '0';
 
         -- ENTER LOAD MODE
         external_load_tb <= '0';
@@ -88,11 +91,14 @@ begin
             hread(line_var, command);
             external_addr_tb <= std_logic_vector(to_unsigned(addr, external_addr_tb'length));
             external_data_tb <= command;
+            external_en_tb <= '0';
             wait for clk_period;
 
             report "Loaded Instruction at Address " & integer'image(addr) & 
                    ": " & to_hstring(command);
 
+        
+            external_en_tb <= '1';
             addr := addr + 1;
         end loop;
 
