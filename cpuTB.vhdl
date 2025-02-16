@@ -62,7 +62,7 @@ begin
 
     -- Test Process
     test_process : process
-        file command_file : text open read_mode is "C:\VHDL\vhdl_project\RiskCompiler\machine_code.txt";
+        file command_file : text open read_mode is "machine_code.txt";
         variable line_var : line;
         variable command  : std_logic_vector(WIDTH-1 downto 0);
         variable addr     : integer := 0;

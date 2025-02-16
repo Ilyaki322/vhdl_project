@@ -132,24 +132,9 @@ architecture behavioral of cpu is
     );
     end component;
 
-    component mux2to1
-    Generic (
-        WIDTH : integer := 16
-    );
-    Port(
-        enable : in std_logic;
-        clk : in std_logic;
-
-        selector : in natural range 0 to 1;
-        input_1, input_2 : in std_logic_vector(WIDTH-1 downto 0);
-
-        output : out std_logic_vector(WIDTH-1 downto 0)
-        );
-    end component;
-    
     component mux
     Generic (
-        WIDTH : integer := 8;
+        WIDTH : integer := 16;
         N : integer := 4 -- number of input ports
     );
     Port(
@@ -157,7 +142,7 @@ architecture behavioral of cpu is
         clk : in std_logic;
 
         selector : in natural range 0 to N - 1;
-        inputs : in mux_p.array_t(0 to WIDTH - 1)(N - 1 downto 0);
+        inputs : in mux_p.array_t(0 to N - 1)(WIDTH-1 downto 0);
 
         output : out std_logic_vector(WIDTH-1 downto 0)
         );
@@ -178,23 +163,16 @@ architecture behavioral of cpu is
     end component;
 
 begin
-
-
     --external_data  : in std_logic_vector(WIDTH-1 downto 0);
        -- external_addr  : in std_logic_vector(MEM_SIZE-1 downto 0);
        -- external_load : in std_logic;  -- '0' = load, '1' = run
+
     dataMux_en <= not exec_en;
     loadRun_nat <= 0 when loadRun_selector = '0' else 1;
-    --instruction_addr_mux : mux
-    --generic map(WIDTH, 2)
-    --port map(enable => enable, clk => clk, selector => loadRun_nat,
-    --     inputs(0) => external_addr, inputs(1) => progCounter, output => progCounterBus);
-         
-
-    instruction_addr_mux : mux2to1
-    generic map(WIDTH)
+    instruction_addr_mux : mux
+    generic map(WIDTH, 2)
     port map(enable => enable, clk => clk, selector => loadRun_nat,
-         input_1 => external_addr, input_2 => progCounter, output => progCounterBus);
+         inputs(0) => external_addr, inputs(1) => progCounter, output => progCounterBus);
 
     data_bus_mux_sel_nat <= 0 when data_bus_mux_sel = '0' else 1;
     main_mem : ram
@@ -235,16 +213,10 @@ begin
     resized_instruction_data <= std_logic_vector(resize(unsigned(instruction_reg_data(7 downto 0)), WIDTH));
 
     
-    --data_bus_mux : mux
-    --generic map(WIDTH, 2)
-    --port map(enable => dataMux_en, clk => clk, selector => data_bus_mux_sel_nat,
-     --    inputs(0) => main_ram_bus, inputs(1) => resized_instruction_data, output => data_bus);
-
-     data_bus_mux : mux2to1
-    generic map(WIDTH)
+    data_bus_mux : mux
+    generic map(WIDTH, 2)
     port map(enable => dataMux_en, clk => clk, selector => data_bus_mux_sel_nat,
-         input_1 => main_ram_bus, input_2 => resized_instruction_data, output => data_bus);
-
+        inputs(0) => main_ram_bus, inputs(1) => resized_instruction_data, output => data_bus);
 
     process (clk) begin
         if reset = '0' then

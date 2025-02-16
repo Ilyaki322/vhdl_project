@@ -12,8 +12,8 @@ architecture behevioural of mux_tb is
 
     signal selector : natural := 0;
 
-    signal i1 : std_logic_vector(3 downto 0) := "0001";
-    signal i2 : std_logic_vector(3 downto 0) := "0010";
+    signal i1 : std_logic_vector(3 downto 0) := "1001";
+    signal i2 : std_logic_vector(3 downto 0) := "0110";
     signal i3 : std_logic_vector(3 downto 0) := "0011";
     signal i4 : std_logic_vector(3 downto 0) := "0100";
 
@@ -21,7 +21,7 @@ architecture behevioural of mux_tb is
 
     component mux
     Generic (
-        WIDTH : integer := 8;
+        WIDTH : integer := 16;
         N : integer := 4 -- number of input ports
     );
     Port(
@@ -29,7 +29,7 @@ architecture behevioural of mux_tb is
         clk : in std_logic;
 
         selector : in natural range 0 to N - 1;
-        inputs : in mux_p.array_t(0 to WIDTH - 1)(N - 1 downto 0);
+        inputs : in mux_p.array_t(0 to N - 1)(WIDTH-1 downto 0);
 
         output : out std_logic_vector(WIDTH-1 downto 0)
         );
@@ -43,11 +43,11 @@ begin
     end process;
 
     UUT : mux
-        generic map(4, 4)
+        generic map(4, 2)
         port map(enable => enable, clk => clk, selector => selector,
-         inputs(0) => i1, inputs(1) => i2, inputs(2) => i3, inputs(3) => i4, output => output);
+         inputs(0) => i1, inputs(1) => i2, output => output);
 
-    selector <= 0, 1 after 110 ns, 2 after 210 ns, 3 after 310 ns; --, 5 after 410 ns; -- this crashes (5 is out of range).
+    selector <= 0, 1 after 110 ns, 0 after 210 ns; --, 5 after 410 ns; -- this crashes (5 is out of range).
 
 
 end behevioural;
