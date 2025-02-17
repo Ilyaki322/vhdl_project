@@ -105,7 +105,7 @@ architecture behavioral of cpu is
 
     component general_register
     Generic (
-        WIDTH : integer := 8
+        WIDTH : integer := 16
     );
     Port(
         clk : in std_logic;
@@ -114,7 +114,7 @@ architecture behavioral of cpu is
         we : in std_logic;
         re : in std_logic;
 
-        data_bus : inout std_logic_vector(WIDTH-1 downto 0);
+        data_bus : in std_logic_vector(WIDTH-1 downto 0);
         register_data : out std_logic_vector(WIDTH-1 downto 0)
     );
     end component;

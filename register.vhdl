@@ -13,7 +13,7 @@ entity general_register is
         we : in std_logic;
         re : in std_logic;
 
-        data_bus : inout std_logic_vector(WIDTH-1 downto 0);
+        data_bus : in std_logic_vector(WIDTH-1 downto 0);
         register_data : out std_logic_vector(WIDTH-1 downto 0)
     );
 end general_register;
@@ -23,17 +23,14 @@ architecture behavioral of general_register is
     signal data : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
 
 begin
-
-    register_data <= data;
-
     process(clk, reset) begin
         if reset = '0' then
-            data <= (others => '0');
+            register_data <= (others => '0');
         end if;
 
         if rising_edge(clk) then
             if re = '0' then
-                data_bus <= data;
+                register_data <= data;
                 report "REGISTER READ: Data output on bus: " & to_hstring(data)
                         severity note;
             end if;
