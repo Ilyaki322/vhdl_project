@@ -153,11 +153,11 @@ begin
     generic map(REG_DECODER_WIDTH)
     port map(enable, clk, reset, inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4), reg_address);
 
-    process
-    begin
-        wait for 50 ns;
-        report "reg = " & to_string(reg_address);
-    end process;
+    --process
+    --begin
+    --    wait for 50 ns;
+    --    report "reg = " & to_string(reg_address);
+    --end process;
 
 
 end behavioral;

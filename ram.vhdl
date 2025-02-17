@@ -34,13 +34,13 @@ begin
         end if;
 
         if rising_edge(clk) then
-            if read_enable = '0' then
+            if read_enable = '0' and write_enable = '1' then
                 data_bus <= data(to_integer(unsigned(address)));
                 report "RAM READ: Address=" & integer'image(to_integer(unsigned(address))) &
                        " Data=" & to_string(data(to_integer(unsigned(address))))
                        severity note;
             end if;
-            if write_enable = '0' then
+            if write_enable = '0' and read_enable = '1' then
                 data(to_integer(unsigned(address))) <= data_busIn;
                 report "RAM WRITE: Address=" & integer'image(to_integer(unsigned(address))) &
                        " Data=" & to_string(data_busIn)

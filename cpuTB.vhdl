@@ -33,8 +33,8 @@ architecture loadprog of cpuTB is
     signal reset_tb         : std_logic := '0';
     signal enable_tb        : std_logic := '0';
     signal load_tb          : std_logic := '0';
-    signal external_data_tb : std_logic_vector(WIDTH-1 downto 0);
-    signal external_addr_tb : std_logic_vector(MEM_SIZE-1 downto 0);
+    signal external_data_tb : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    signal external_addr_tb : std_logic_vector(MEM_SIZE-1 downto 0) := (others => '0');
     signal external_load_tb : std_logic := '0';
     signal external_en_tb   : std_logic := '1';
 
@@ -79,27 +79,24 @@ begin
         report "System RESET complete.";
 
         enable_tb <= '1';
-        wait for clk_period;
 
         -- ENTER LOAD MODE
-        external_load_tb <= '0';
-        load_tb <= '0';
-        external_en_tb <= '0';
+        load_tb <= '1';
         report "Loading program into RAM...";
-
+        wait for clk_period;
+        external_en_tb <= '0';
+        external_load_tb <= '0';
         -- READ AND LOAD COMMANDS FROM FILE
         while not endfile(command_file) loop
             readline(command_file, line_var);
             read(line_var, command);
             external_addr_tb <= std_logic_vector(to_unsigned(addr, external_addr_tb'length));
             external_data_tb <= std_logic_vector(command);
+
             addr := addr + 1;
             wait for clk_period;
-
-            report "Loaded Instruction at Address " & integer'image(addr) & 
-                   ": " & to_string(command);
         end loop;
-
+            wait for clk_period;
         -- SWITCH TO EXECUTION MODE
         report "Switching to EXECUTION mode...";
         external_en_tb <= '1';

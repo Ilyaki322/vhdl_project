@@ -176,8 +176,10 @@ begin
     loadRun_nat <= 0 when loadRun_selector = '0' else 1;
     instruction_addr_mux : mux
     generic map(WIDTH, 2)
-    port map(enable => enable, clk => clk, selector => loadRun_nat,
+    port map(enable => external_en, clk => clk, selector => loadRun_nat,
          inputs(0) => external_addr, inputs(1) => progCounter, output => progCounterBus);
+
+         
 
     data_bus_mux_sel_nat <= 0 when data_bus_mux_sel = '0' else 1;
     main_mem : ram
@@ -232,6 +234,8 @@ begin
                 when start =>
                     if load = '0' then
                         status <= init;
+                        cu_inst_reg_re <= '1';
+                        cu_inst_reg_we <= '1';
                     else
                         status <= fetch;
                     end if;
@@ -268,4 +272,10 @@ begin
             end case;
         end if;
    end process;
+
+   --process
+    --begin
+    --    wait for 10 ns;
+     --   report "reg prog counter= " & to_string(progCounterBus);
+    --end process;
 end behavioral;
