@@ -66,47 +66,60 @@ begin
 
     -- Test Process
     test_process : process
-        file command_file : text open read_mode is "machine_code.txt";
+        file command_file : text open read_mode is "./work/machine_code.txt";
         variable line_var : line;
         variable command  : std_logic_vector(WIDTH-1 downto 0);
         variable addr     : integer := 0;
+
+        variable binary_string : string(1 to WIDTH);
+        
+
     begin
+        
+
         -- INITIAL RESET
         reset_tb <= '0';
-        wait for 20 ns;
-        reset_tb <= '1';
+        wait for clk_period;
+        reset_tb <= '1';    wait for clk_period;
         report "System RESET complete.";
 
-        wait for 20 ns;
         enable_tb <= '0';
-
+        wait for clk_period;
         -- ENTER LOAD MODE
         external_load_tb <= '0';
         load_tb <= '0';  -- Indicate CPU is in loading phase
+        external_en_tb <= '0';
         report "Loading program into RAM...";
 
         -- READ AND LOAD COMMANDS FROM FILE
         while not endfile(command_file) loop
             readline(command_file, line_var);
-            hread(line_var, command);
+            read(line_var, command);
             external_addr_tb <= std_logic_vector(to_unsigned(addr, external_addr_tb'length));
-            external_data_tb <= command;
-            external_en_tb <= '0';
+            external_data_tb <= std_logic_vector(command);
+            addr := addr + 1;
             wait for clk_period;
 
-            report "Loaded Instruction at Address " & integer'image(addr) & 
-                   ": " & to_hstring(command);
+            -- Convert std_logic_vector to a binary string
+            for i in 0 to WIDTH-1 loop
+                if command(i) = '1' then
+                    binary_string(i+1) := '1';
+                else
+                    binary_string(i+1) := '0';
+                end if;
+            end loop;
 
-        
-            external_en_tb <= '1';
-            addr := addr + 1;
+            report "Loaded Instruction at Address " & integer'image(addr) & 
+                   ": " & binary_string;
         end loop;
 
         wait for 20 ns;
 
         -- SWITCH TO EXECUTION MODE
         report "Switching to EXECUTION mode...";
+        external_en_tb <= '1';
         external_load_tb <= '1';  -- Execution mode
+        wait for clk_period;
         load_tb <= '1';          -- CPU executes instructions
         wait for 100 ns;
 
