@@ -33,9 +33,10 @@ architecture behavioral of control_unit is
     constant DECODER_WIDTH : integer := 2;
     constant REG_DECODER_WIDTH : integer := 4;
 
-    signal inst_data_bus : std_logic_vector(WIDTH-1 downto 0); -- we dont need the data_bus inside the control_unit
+    --signal inst_data_bus : std_logic_vector(WIDTH-1 downto 0); -- we dont need the data_bus inside the control_unit
     signal inst_reg_we, inst_reg_re : std_logic;
-    signal inst_reg_data : std_logic_vector(WIDTH-1 downto 0);
+    signal inst_reg_data_in : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    signal inst_reg_data_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
 
     signal decoder_bus : std_logic_vector((2**DECODER_WIDTH)-1 downto 0);
     signal reg_address : std_logic_vector((2**REG_DECODER_WIDTH)-1 downto 0);
@@ -58,7 +59,7 @@ architecture behavioral of control_unit is
         we : in std_logic;
         re : in std_logic;
 
-        data_bus : inout std_logic_vector(WIDTH-1 downto 0);
+        data_bus : in std_logic_vector(WIDTH-1 downto 0);
         register_data : out std_logic_vector(WIDTH-1 downto 0)
     );
     end component;
@@ -114,11 +115,11 @@ begin
 
     inst_reg_we <= inst_we;
     inst_reg_re <= inst_re;
-    inst_reg_data <= inst;
+    inst_reg_data_in <= inst;
 
     main_data_bus_mux_sel <= decoder_bus(3);
 
-    ram_address <= inst_reg_data(7 downto 0); -- make generic?
+    ram_address <= inst_reg_data_out(7 downto 0); -- make generic?
     main_mem_re <= not (exec_en and (decoder_bus(1) or decoder_bus(3)));
     main_mem_we <= not (exec_en and decoder_bus(2));
 
@@ -141,15 +142,21 @@ begin
 
     inst_reg : general_register
     generic map(WIDTH)
-    port map(clk, reset, inst_reg_we, inst_reg_re, inst_reg_data, inst_reg_data);
+    port map(clk, reset, inst_reg_we, inst_reg_re, inst_reg_data_in, inst_reg_data_out);
 
     inst_decoder : decoder
-    generic map(DECODER_WIDTH) -- change this to a const or generic
-    port map(enable, clk, reset, inst_reg_data(WIDTH-1 downto WIDTH-DECODER_WIDTH), decoder_bus);
+    generic map(DECODER_WIDTH)
+    port map(enable, clk, reset, inst_reg_data_out(WIDTH-1 downto WIDTH-DECODER_WIDTH), decoder_bus);
 
     reg_decoder : decoder
     generic map(REG_DECODER_WIDTH)
-    port map(enable, clk, reset, inst_reg_data(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4), reg_address);
+    port map(enable, clk, reset, inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4), reg_address);
+
+    process
+    begin
+        wait for 50 ns;
+        report "inst_reg_data = " & to_string(inst_reg_data_in);
+    end process;
 
 
 end behavioral;

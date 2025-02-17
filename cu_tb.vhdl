@@ -60,8 +60,8 @@ architecture behevioural of cu_tb is
 begin
     clk_process : process
     begin
-        clk <= '0'; wait for 50 ns;
-        clk <= '1'; wait for 50 ns;
+        clk <= '0'; wait for 5 ns;
+        clk <= '1'; wait for 5 ns;
     end process;
 
     UUT : control_unit
@@ -71,5 +71,11 @@ begin
          main_mem_re, main_mem_we, main_data_bus_mux_sel);
 
     reset <= '0', '1' after 20 ns;
+    --inst <= "0011001000001111";
+    inst <= "1111111111111111";
+    enable <= '1', '0' after 20 ns;
+    inst_we <= '0', '0' after 20 ns, '1' after 40 ns;
+    inst_re <= '1', '0' after 40 ns;
+    exec_en <= '0';
 
 end behevioural;
