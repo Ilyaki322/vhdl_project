@@ -71,23 +71,19 @@ begin
         variable command  : std_logic_vector(WIDTH-1 downto 0);
         variable addr     : integer := 0;
 
-        variable binary_string : string(1 to WIDTH);
-        
-
     begin
-        
-
+    
         -- INITIAL RESET
-        reset_tb <= '0';
-        wait for clk_period;
-        reset_tb <= '1';    wait for clk_period;
+        reset_tb <= '0'; wait for clk_period;
+        reset_tb <= '1'; wait for clk_period;
         report "System RESET complete.";
 
-        enable_tb <= '0';
+        enable_tb <= '1';
         wait for clk_period;
+
         -- ENTER LOAD MODE
         external_load_tb <= '0';
-        load_tb <= '0';  -- Indicate CPU is in loading phase
+        load_tb <= '0';
         external_en_tb <= '0';
         report "Loading program into RAM...";
 
@@ -100,20 +96,9 @@ begin
             addr := addr + 1;
             wait for clk_period;
 
-            -- Convert std_logic_vector to a binary string
-            for i in 0 to WIDTH-1 loop
-                if command(i) = '1' then
-                    binary_string(i+1) := '1';
-                else
-                    binary_string(i+1) := '0';
-                end if;
-            end loop;
-
             report "Loaded Instruction at Address " & integer'image(addr) & 
-                   ": " & binary_string;
+                   ": " & to_string(command);
         end loop;
-
-        wait for 20 ns;
 
         -- SWITCH TO EXECUTION MODE
         report "Switching to EXECUTION mode...";
@@ -121,9 +106,6 @@ begin
         external_load_tb <= '1';  -- Execution mode
         wait for clk_period;
         load_tb <= '1';          -- CPU executes instructions
-        wait for 100 ns;
-
-        report "Program execution finished.";
         wait;
     end process;
 
