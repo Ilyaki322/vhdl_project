@@ -23,6 +23,7 @@ entity control_unit is
         
         main_mem_re : out std_logic;
         main_mem_we : out std_logic;
+        main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
         main_data_bus_mux_sel : out std_logic
     );
@@ -30,7 +31,7 @@ end control_unit;
 
 architecture behavioral of control_unit is
 
-    constant DECODER_WIDTH : integer := 2;
+    constant DECODER_WIDTH : integer := 4;
     constant REG_DECODER_WIDTH : integer := 4;
 
     --signal inst_data_bus : std_logic_vector(WIDTH-1 downto 0); -- we dont need the data_bus inside the control_unit
@@ -46,7 +47,7 @@ architecture behavioral of control_unit is
     --signal reg3_we_sig, reg3_re_sig : std_logic;
     --signal reg4_we_sig, reg4_re_sig : std_logic;
 
-    signal ram_address : std_logic_vector(7 downto 0); -- make generic!
+    --signal ram_address : std_logic_vector(WIDTH-1 downto 0); -- make generic!
 
     component general_register
     Generic (
@@ -119,9 +120,9 @@ begin
 
     main_data_bus_mux_sel <= decoder_bus(3);
 
-    ram_address <= inst_reg_data_out(7 downto 0); -- make generic?
-    main_mem_re <= not (exec_en and (decoder_bus(1) or decoder_bus(3)));
-    main_mem_we <= not (exec_en and decoder_bus(2));
+    main_mem_addr <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0); -- make generic?
+    main_mem_re <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)));
+    main_mem_we <= not ( not exec_en and decoder_bus(2));
 
     --reg1_we <= reg1_we_sig;
     --reg1_re <= reg1_re_sig;
@@ -131,14 +132,14 @@ begin
     --reg3_re <= reg3_re_sig;
     --reg4_we <= reg4_we_sig;
     --reg4_re <= reg4_re_sig;
-    reg1_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(0));
-    reg1_re <= not (exec_en and decoder_bus(2) and reg_address(0));
-    reg2_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1));
-    reg2_re <= not (exec_en and decoder_bus(2) and reg_address(1));
-    reg3_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2));
-    reg3_re <= not (exec_en and decoder_bus(2) and reg_address(2));
-    reg4_we <= not (exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(3));
-    reg4_re <= not (exec_en and decoder_bus(2) and reg_address(3));
+    reg1_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1));
+    reg1_re <= not ( not exec_en and decoder_bus(2) and reg_address(1));
+    reg2_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2));
+    reg2_re <= not ( not exec_en and decoder_bus(2) and reg_address(2));
+    reg3_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(3));
+    reg3_re <= not ( not exec_en and decoder_bus(2) and reg_address(3));
+    reg4_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(4));
+    reg4_re <= not ( not exec_en and decoder_bus(2) and reg_address(4));
 
     inst_reg : general_register
     generic map(WIDTH)
@@ -155,7 +156,7 @@ begin
     process
     begin
         wait for 50 ns;
-        report "inst_reg_data = " & to_string(inst_reg_data_in);
+        report "reg = " & to_string(reg_address);
     end process;
 
 

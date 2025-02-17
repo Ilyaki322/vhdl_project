@@ -27,7 +27,8 @@ architecture behevioural of cu_tb is
     signal reg4_re : std_logic;
 
     signal main_mem_re : std_logic;
-    signal main_mem_we : std_logic;  
+    signal main_mem_we : std_logic;
+    signal main_mem_addr : std_logic_vector(WIDTH-1 downto 0);
     
     signal main_data_bus_mux_sel : std_logic;
 
@@ -52,6 +53,7 @@ architecture behevioural of cu_tb is
         
         main_mem_re : out std_logic;
         main_mem_we : out std_logic;
+        main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
         main_data_bus_mux_sel : out std_logic
     );
@@ -68,11 +70,10 @@ begin
         generic map(WIDTH)
         port map(enable, clk, reset, exec_en, inst_we, inst_re, inst,
          reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re,
-         main_mem_re, main_mem_we, main_data_bus_mux_sel);
+         main_mem_re, main_mem_we, main_mem_addr, main_data_bus_mux_sel);
 
     reset <= '0', '1' after 20 ns;
-    --inst <= "0011001000001111";
-    inst <= "1111111111111111";
+    inst <= "0010000100001001";
     enable <= '1', '0' after 20 ns;
     inst_we <= '0', '0' after 20 ns, '1' after 40 ns;
     inst_re <= '1', '0' after 40 ns;
