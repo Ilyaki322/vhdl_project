@@ -185,9 +185,9 @@ begin
     port map(reset => reset, enable => enable, clk => clk, selector => data_bus_mux_sel_nat,
         inputs(0) => main_ram_bus, inputs(1) => resized_instruction_data, output => data_bus);
 
-    --main_mem : ram
-    --generic map(WIDTH, MEM_SIZE)
-    --port map(clk, reset, main_memory_re, main_memory_we, main_memory_address, main_ram_bus, data_bus);
+    main_mem : ram
+    generic map(WIDTH, MEM_SIZE)
+    port map(clk, reset, main_memory_re, main_memory_we, main_memory_address, main_ram_bus, data_bus);
 
     inst_stack : ram
     generic map(WIDTH, MEM_SIZE)
@@ -247,12 +247,12 @@ begin
                 
                 when execute =>
                 instruction_stack_re <= '0';
+                cu_inst_reg_re <= '1';
                 exec_en <= '1';
                 status <= memory;
                 
                 when memory =>
                 cu_inst_reg_we <= '0';
-                cu_inst_reg_re <= '1';
                 --exec_en <= '1';
                 cu_en <= '0';
                 status <= fetch;
