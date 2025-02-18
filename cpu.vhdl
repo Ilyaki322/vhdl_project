@@ -98,6 +98,7 @@ architecture behavioral of cpu is
         
         main_mem_re : out std_logic;
         main_mem_we : out std_logic;
+        main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
         main_data_bus_mux_sel : out std_logic
     );
@@ -212,7 +213,7 @@ begin
     cu : control_unit
     generic map(WIDTH)
     port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
-    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, data_bus_mux_sel);
+    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, main_memory_address, data_bus_mux_sel);
 
     
     process (clk) begin
