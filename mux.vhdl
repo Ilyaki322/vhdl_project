@@ -31,7 +31,7 @@ end mux;
 
 architecture behavioral of mux is
 begin
-    process(clk)
+    process(selector, reset, clk)--process(clk, reset)
     begin
         if reset = '0' then
             output <= (others => '0');

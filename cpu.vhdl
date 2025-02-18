@@ -225,6 +225,7 @@ begin
                 if load = '1' then
                     instruction_stack_re <= '0';
                     main_memory_re <= '0';
+                    cu_en <= '0';
                     status <= init;
                 end if;
 
@@ -236,7 +237,6 @@ begin
                 instruction_stack_re <= '1';
                 cu_inst_reg_we <= '1';
                 cu_inst_reg_re <= '0';
-                exec_en <= '1';
                 cu_en <= '0';
                 progCounter <= progCounter + 1;
                 status <= decode;
@@ -244,16 +244,17 @@ begin
                 when decode =>
                 exec_en <= '0';
                 status <= execute;
-
+                
                 when execute =>
                 instruction_stack_re <= '0';
-                cu_inst_reg_we <= '0';
+                exec_en <= '1';
                 status <= memory;
                 
                 when memory =>
-                exec_en <= '1';
+                cu_inst_reg_we <= '0';
                 cu_inst_reg_re <= '1';
-                cu_en <= '1';
+                --exec_en <= '1';
+                cu_en <= '0';
                 status <= fetch;
 
 
@@ -267,6 +268,6 @@ begin
    --process
     --begin
         --wait for 10 ns;
-        --report "sel = " & to_string(data_bus_mux_sel);
+        --report "s1 = " & to_string(external_addr);
     --end process;
 end behavioral;

@@ -19,7 +19,7 @@ end decoder;
 
 architecture behavioral of decoder is
 begin
-    process(clk, reset)
+    process(input, reset, clk) --process(clk, reset)
     begin
         if reset = '0' then
             output <= (others => '0');
