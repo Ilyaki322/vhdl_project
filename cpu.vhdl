@@ -49,15 +49,15 @@ architecture behavioral of cpu is
     signal main_memory_re : std_logic := '1';    
     signal main_memory_we : std_logic := '1';
     --signal main_memory_address : std_logic_vector(MEM_SIZE-1 downto 0);
-    signal main_memory_address : std_logic_vector(WIDTH-1 downto 0);
+    signal main_memory_address : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
 
     signal instruction_reg_we, instruction_reg_re : std_logic;
-    signal instruction_reg_data : std_logic_vector(WIDTH-1 downto 0);
-    signal instruction_bus : std_logic_vector(WIDTH-1 downto 0);
+    --signal instruction_reg_data : std_logic_vector(WIDTH-1 downto 0);
+    signal instruction_bus : std_logic_vector(WIDTH-1 downto 0) ;--:= (others => '0');
 
     --signal progCounter : std_logic_vector(MEM_SIZE-1 downto 0) := (others => '0');
     signal progCounter : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    signal progCounterBus : std_logic_vector(WIDTH-1 downto 0);
+    signal progCounterBus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
 
     signal instruction_stack_re : std_logic := '1';    
     signal instruction_stack_we : std_logic := '1';
@@ -68,12 +68,12 @@ architecture behavioral of cpu is
 
     signal dataMux_en : std_logic;
     signal data_bus_mux_sel : std_logic := '0';
-    signal data_bus_mux_sel_nat : natural;
+    signal data_bus_mux_sel_nat : natural := 0;
 
     signal cu_en : std_logic := '1';
 
     signal loadRun_selector : std_logic := '0';
-    signal loadRun_nat : natural;
+    signal loadRun_nat : natural := 0;
 
     signal resized_instruction_data : std_logic_vector(WIDTH-1 downto 0);
 
@@ -145,6 +145,7 @@ architecture behavioral of cpu is
     Port(
         enable : in std_logic;
         clk : in std_logic;
+        reset : in std_logic;
 
         selector : in natural range 0 to N - 1;
         inputs : in mux_p.array_t(0 to N - 1)(WIDTH-1 downto 0);
@@ -173,10 +174,10 @@ begin
        -- external_load : in std_logic;  -- '0' = load, '1' = run
 
     dataMux_en <= not exec_en;
-    loadRun_nat <= 0 when loadRun_selector = '0' else 1;
+    loadRun_nat <= 0 when external_load = '0' else 1;
     instruction_addr_mux : mux
     generic map(WIDTH, 2)
-    port map(enable => external_en, clk => clk, selector => loadRun_nat,
+    port map(reset => reset, enable => external_en nor enable, clk => clk, selector => loadRun_nat,
          inputs(0) => external_addr, inputs(1) => progCounter, output => progCounterBus);
 
          
@@ -214,20 +215,20 @@ begin
 
     cu : control_unit
     generic map(WIDTH)
-    port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_reg_data, 
+    port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
     reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, data_bus_mux_sel);
 
-    resized_instruction_data <= std_logic_vector(resize(unsigned(instruction_reg_data(7 downto 0)), WIDTH));
+    --resized_instruction_data <= std_logic_vector(resize(unsigned(instruction_bus(7 downto 0)), WIDTH));
 
     
     data_bus_mux : mux
     generic map(WIDTH, 2)
-    port map(enable => dataMux_en, clk => clk, selector => data_bus_mux_sel_nat,
+    port map(reset => reset, enable => dataMux_en, clk => clk, selector => data_bus_mux_sel_nat,
         inputs(0) => main_ram_bus, inputs(1) => resized_instruction_data, output => data_bus);
 
     process (clk) begin
         if reset = '0' then
-            -- we need this?
+            -- reset
 
         elsif rising_edge(clk) then
             case status is
@@ -237,10 +238,13 @@ begin
                         cu_inst_reg_re <= '1';
                         cu_inst_reg_we <= '1';
                     else
+                        instruction_stack_re <= '0';
                         status <= fetch;
                     end if;
                 when init =>
                     if load = '1' then
+                        --instruction_stack_we <= '1'; -- does nothing ( not connected to anythin ).
+                        instruction_stack_re <= '0';
                         status <= fetch;
                     end if;
 
@@ -275,7 +279,7 @@ begin
 
    --process
     --begin
-    --    wait for 10 ns;
-     --   report "reg prog counter= " & to_string(progCounterBus);
+        --wait for 10 ns;
+        --report "inst = " & to_string(instruction_bus);
     --end process;
 end behavioral;

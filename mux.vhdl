@@ -20,6 +20,7 @@ entity mux is
     Port(
         enable : in std_logic;
         clk : in std_logic;
+        reset : in std_logic;
 
         selector : in natural range 0 to N - 1;
         inputs : in mux_p.array_t(0 to N - 1)(WIDTH-1 downto 0);
@@ -32,6 +33,9 @@ architecture behavioral of mux is
 begin
     process(clk)
     begin
+        if reset = '0' then
+            output <= (others => '0');
+        end if;
         if rising_edge(clk) then
             if enable = '0' then
                 output <= inputs(selector);

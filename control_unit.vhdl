@@ -90,9 +90,10 @@ architecture behavioral of control_unit is
     Port(
         enable : in std_logic;
         clk : in std_logic;
+        reset : in std_logic;
 
         selector : in natural range 0 to N - 1;
-        inputs : in mux_p.array_t(0 to WIDTH - 1)(N - 1 downto 0);
+        inputs : in mux_p.array_t(0 to N - 1)(WIDTH-1 downto 0);
 
         output : out std_logic_vector(WIDTH-1 downto 0)
         );
