@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 use work.mux_p;
 
 entity control_unit is
@@ -25,6 +26,8 @@ entity control_unit is
         main_mem_we : out std_logic;
         main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
+        reg_sel : out natural;
+
         main_data_bus_mux_sel : out std_logic
     );
 end control_unit;
@@ -35,9 +38,11 @@ architecture behavioral of control_unit is
     constant REG_DECODER_WIDTH : integer := 4;
 
     --signal inst_data_bus : std_logic_vector(WIDTH-1 downto 0); -- we dont need the data_bus inside the control_unit
-    signal inst_reg_we, inst_reg_re : std_logic;
-    signal inst_reg_data_in : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    --signal inst_reg_we, inst_reg_re : std_logic;
+    --signal inst_reg_data_in : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal inst_reg_data_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+
+    --signal reg_add_test : std_logic_vector(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4); -- test
 
     signal decoder_bus : std_logic_vector((2**DECODER_WIDTH)-1 downto 0);
     signal reg_address : std_logic_vector((2**REG_DECODER_WIDTH)-1 downto 0);
@@ -108,28 +113,32 @@ architecture behavioral of control_unit is
 
 begin
 
-    inst_reg_we <= inst_we;
-    inst_reg_re <= inst_re;
-    inst_reg_data_in <= inst;
+    --inst_reg_we <= inst_we;
+    --inst_reg_re <= inst_re;
+    --inst_reg_data_in <= inst;
 
     main_data_bus_mux_sel <= decoder_bus(3);
 
-    main_mem_addr <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0); -- make generic?
-    main_mem_re <= not ( not exec_en and decoder_bus(1));
-    main_mem_we <= not ( not exec_en and decoder_bus(2));
+    --reg_add_test <= inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4);
+    --reg_sel <= to_integer(unsigned(reg_add_test));
+    reg_sel <= to_integer(unsigned(inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4)));
 
-    reg1_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1));
+    main_mem_addr <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0); -- make generic?
+    main_mem_re <= not (not exec_en and decoder_bus(1));
+    main_mem_we <= not (exec_en and decoder_bus(2));
+
+    reg1_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1));
     reg1_re <= not ( not exec_en and decoder_bus(2) and reg_address(1));
-    reg2_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2));
+    reg2_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2));
     reg2_re <= not ( not exec_en and decoder_bus(2) and reg_address(2));
-    reg3_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(3));
+    reg3_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(3));
     reg3_re <= not ( not exec_en and decoder_bus(2) and reg_address(3));
-    reg4_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(4));
+    reg4_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(4));
     reg4_re <= not ( not exec_en and decoder_bus(2) and reg_address(4));
 
     inst_reg : general_register
     generic map(WIDTH)
-    port map(clk, reset, inst_reg_we, inst_reg_re, inst_reg_data_in, inst_reg_data_out);
+    port map(clk, reset, inst_we, inst_re, inst, inst_reg_data_out);
 
     inst_decoder : decoder
     generic map(DECODER_WIDTH)

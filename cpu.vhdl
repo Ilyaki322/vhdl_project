@@ -27,6 +27,9 @@ architecture behavioral of cpu is
     type state is (start, init, fetch, decode, execute, memory);
     signal status : state := start;
 
+    signal reg_out_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    signal reg_out_mux_sel : natural := 0;
+
     signal data_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal main_ram_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
 
@@ -100,6 +103,8 @@ architecture behavioral of cpu is
         main_mem_we : out std_logic;
         main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
+        reg_sel : out natural;
+
         main_data_bus_mux_sel : out std_logic
     );
     end component;
@@ -171,10 +176,14 @@ architecture behavioral of cpu is
 
 begin
 
-    --dataMux_en <= not exec_en;
     loadRun_nat <= 0 when external_load = '0' else 1;
     data_bus_mux_sel_nat <= 0 when data_bus_mux_sel = '0' else 1;
     resized_instruction_data <= std_logic_vector(resize(unsigned(instruction_bus(7 downto 0)), WIDTH));
+
+    reg_data_mux : mux
+    generic map(WIDTH, 5)
+    port map(reset => reset, enable => enable, clk => clk, selector => reg_out_mux_sel, inputs(0) => (others => '0'),
+        inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_out_bus);
 
     instruction_addr_mux : mux
     generic map(WIDTH, 2)
@@ -188,7 +197,7 @@ begin
 
     main_mem : ram
     generic map(WIDTH, MEM_SIZE)
-    port map(clk, reset, main_memory_re, main_memory_we, main_memory_address, main_ram_bus, data_bus);
+    port map(clk, reset, main_memory_re, main_memory_we, main_memory_address, main_ram_bus, reg_out_bus);
 
     inst_stack : ram
     generic map(WIDTH, MEM_SIZE)
@@ -213,7 +222,8 @@ begin
     cu : control_unit
     generic map(WIDTH)
     port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
-    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, main_memory_address, data_bus_mux_sel);
+    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, main_memory_address,
+    reg_out_mux_sel, data_bus_mux_sel);
 
     
     process (clk) begin
@@ -232,29 +242,30 @@ begin
 
                 when init =>
                 cu_inst_reg_we <= '0';
+                instruction_stack_re <= '1';
                 status <= fetch;
 
                 when fetch =>
-                instruction_stack_re <= '1';
+                --instruction_stack_re <= '1';
                 cu_inst_reg_we <= '1';
                 cu_inst_reg_re <= '0';
                 cu_en <= '0';
                 progCounter <= progCounter + 1;
                 status <= decode;
-
+                
                 when decode =>
+                cu_inst_reg_re <= '1';
                 exec_en <= '0';
                 status <= execute;
                 
                 when execute =>
                 instruction_stack_re <= '0';
-                cu_inst_reg_re <= '1';
                 exec_en <= '1';
                 status <= memory;
                 
                 when memory =>
                 cu_inst_reg_we <= '0';
-                --exec_en <= '1';
+                exec_en <= '0';
                 cu_en <= '0';
                 status <= fetch;
 
@@ -269,6 +280,6 @@ begin
    --process
     --begin
         --wait for 10 ns;
-        --report "s1 = " & to_string(external_addr);
+        --report "data = " & to_string(data_bus);
     --end process;
 end behavioral;
