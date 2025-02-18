@@ -73,7 +73,7 @@ begin
          main_mem_re, main_mem_we, main_mem_addr, main_data_bus_mux_sel);
 
     reset <= '0', '1' after 20 ns;
-    inst <= "0010000100001001";
+    inst <= "0011001000001111";
     enable <= '1', '0' after 20 ns;
     inst_we <= '0', '0' after 20 ns, '1' after 40 ns;
     inst_re <= '1', '0' after 40 ns;

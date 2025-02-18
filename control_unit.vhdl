@@ -42,13 +42,6 @@ architecture behavioral of control_unit is
     signal decoder_bus : std_logic_vector((2**DECODER_WIDTH)-1 downto 0);
     signal reg_address : std_logic_vector((2**REG_DECODER_WIDTH)-1 downto 0);
 
-    --signal reg1_we_sig, reg1_re_sig : std_logic;
-    --signal reg2_we_sig, reg2_re_sig : std_logic;
-    --signal reg3_we_sig, reg3_re_sig : std_logic;
-    --signal reg4_we_sig, reg4_re_sig : std_logic;
-
-    --signal ram_address : std_logic_vector(WIDTH-1 downto 0); -- make generic!
-
     component general_register
     Generic (
         WIDTH : integer := 16
@@ -122,17 +115,9 @@ begin
     main_data_bus_mux_sel <= decoder_bus(3);
 
     main_mem_addr <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0); -- make generic?
-    main_mem_re <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)));
+    main_mem_re <= not ( not exec_en and decoder_bus(1));
     main_mem_we <= not ( not exec_en and decoder_bus(2));
 
-    --reg1_we <= reg1_we_sig;
-    --reg1_re <= reg1_re_sig;
-    --reg2_we <= reg2_we_sig;
-    --reg2_re <= reg2_re_sig;
-    --reg3_we <= reg3_we_sig;
-    --reg3_re <= reg3_re_sig;
-    --reg4_we <= reg4_we_sig;
-    --reg4_re <= reg4_re_sig;
     reg1_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1));
     reg1_re <= not ( not exec_en and decoder_bus(2) and reg_address(1));
     reg2_we <= not ( not exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2));
@@ -156,8 +141,8 @@ begin
 
     --process
     --begin
-    --    wait for 50 ns;
-    --    report "reg = " & to_string(reg_address);
+        --report "en = " & to_string(exec_en);
+        --wait for 10 ns;
     --end process;
 
 
