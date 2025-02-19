@@ -27,6 +27,16 @@ architecture behavioral of cpu is
     type state is (start, init, fetch, decode, execute, memory);
     signal status : state := start;
 
+    signal alu_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    signal op : std_logic_vector(3 downto 0); -- make generic?
+    signal alu_en : std_logic := '1';
+
+    signal reg_bus_1 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    signal reg_bus_2 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');  
+    signal reg_selector_1 : natural := 0;
+    signal reg_selector_2 : natural := 0;
+
+
     signal reg_out_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal reg_out_mux_sel : natural := 0;
 
@@ -103,9 +113,13 @@ architecture behavioral of cpu is
         main_mem_we : out std_logic;
         main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
-        reg_sel : out natural;
+        opc : out std_logic_vector(3 downto 0);
+        alu_en : out std_logic;
 
-        main_data_bus_mux_sel : out std_logic
+        reg_sel : out natural;
+        op1 : out natural;
+        op2 : out natural;
+        main_data_bus_mux_sel : out natural
     );
     end component;
 
@@ -174,10 +188,57 @@ architecture behavioral of cpu is
     );
     end component;
 
+    component alu
+    generic (
+        WIDTH : integer := 16
+    );
+    Port(
+        enable: in std_logic;
+        clk: in std_logic;
+        reset: in std_logic;
+
+        arg_a: in std_logic_vector(WIDTH-1 downto 0);
+        arg_b: in std_logic_vector(WIDTH-1 downto 0);
+        op: in std_logic_vector(3 downto 0);
+
+        result: out std_logic_vector((2*WIDTH)-1 downto 0)
+    );
+    end component;
+
 begin
 
+
+    --signal alu_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    --signal op : std_logic_vector(3 downto 0); -- make generic?
+
+    --signal reg_bus_1 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    --signal reg_bus_2 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');  
+    --signal reg_selector_1 : natural := 0;
+    --signal reg_selector_2 : natural := 0;
+
+
+    alu_1 : alu
+    generic map(WIDTH/2)
+    port map(enable, clk, reset, reg_bus_1(7 downto 0), reg_bus_2(7 downto 0), op, alu_out);
+
+    reg_sel_1 : mux
+    generic map(WIDTH, 5)
+    port map(reset => reset, enable => alu_en, clk => clk, selector => reg_selector_1, inputs(0) => (others => '0'),
+        inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_bus_1);
+
+    reg_sel_2 : mux
+    generic map(WIDTH, 5)
+    port map(reset => reset, enable => alu_en, clk => clk, selector => reg_selector_2, inputs(0) => (others => '0'),
+        inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_bus_2);
+
+    data_bus_mux : mux
+    generic map(WIDTH, 3)
+    port map(reset => reset, enable => enable, clk => clk, selector => data_bus_mux_sel_nat,
+        inputs(0) => main_ram_bus, inputs(1) => resized_instruction_data, inputs(2) => alu_out, output => data_bus);
+
+
     loadRun_nat <= 0 when external_load = '0' else 1;
-    data_bus_mux_sel_nat <= 0 when data_bus_mux_sel = '0' else 1;
+    --data_bus_mux_sel_nat <= 0 when data_bus_mux_sel = '0' else 1;
     resized_instruction_data <= std_logic_vector(resize(unsigned(instruction_bus(7 downto 0)), WIDTH));
 
     reg_data_mux : mux
@@ -189,11 +250,6 @@ begin
     generic map(WIDTH, 2)
     port map(reset => reset, enable => external_en and enable, clk => clk, selector => loadRun_nat,
         inputs(0) => external_addr, inputs(1) => progCounter, output => progCounterBus);
-
-    data_bus_mux : mux
-    generic map(WIDTH, 2)
-    port map(reset => reset, enable => enable, clk => clk, selector => data_bus_mux_sel_nat,
-        inputs(0) => main_ram_bus, inputs(1) => resized_instruction_data, output => data_bus);
 
     main_mem : ram
     generic map(WIDTH, MEM_SIZE)
@@ -222,8 +278,8 @@ begin
     cu : control_unit
     generic map(WIDTH)
     port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
-    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, main_memory_address,
-    reg_out_mux_sel, data_bus_mux_sel);
+    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, main_memory_address, op, alu_en,
+    reg_out_mux_sel, reg_selector_1, reg_selector_2, data_bus_mux_sel_nat);
 
     
     process (clk) begin
@@ -277,9 +333,9 @@ begin
         end if;
    end process;
 
-   --process
-    --begin
-        --wait for 10 ns;
-        --report "data = " & to_string(data_bus);
-    --end process;
+   process
+    begin
+        wait for 10 ns;
+        report "ALU RES = " & to_string(alu_out);
+    end process;
 end behavioral;

@@ -26,9 +26,13 @@ entity control_unit is
         main_mem_we : out std_logic;
         main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
-        reg_sel : out natural;
+        opc : out std_logic_vector(3 downto 0);
+        alu_en : out std_logic;
 
-        main_data_bus_mux_sel : out std_logic
+        reg_sel : out natural;
+        op1 : out natural;
+        op2 : out natural;
+        main_data_bus_mux_sel : out natural
     );
 end control_unit;
 
@@ -113,16 +117,18 @@ architecture behavioral of control_unit is
 
 begin
 
-    --inst_reg_we <= inst_we;
-    --inst_reg_re <= inst_re;
-    --inst_reg_data_in <= inst;
+    alu_en <= not decoder_bus(4);
+    opc <= inst_reg_data_out(WIDTH-1 downto WIDTH-DECODER_WIDTH);
 
-    main_data_bus_mux_sel <= decoder_bus(3);
-
-    --reg_add_test <= inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4);
-    --reg_sel <= to_integer(unsigned(reg_add_test));
+    --main_data_bus_mux_sel <= decoder_bus(3);
+    main_data_bus_mux_sel <= 0 when decoder_bus(3) = '0' else
+                             1 when decoder_bus(3) = '1' else
+                             2;
     reg_sel <= to_integer(unsigned(inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4)));
-
+    op1 <= 0 when alu_en else to_integer(unsigned(inst_reg_data_out(7 downto 4)));
+    op2 <= 0 when alu_en else to_integer(unsigned(inst_reg_data_out(3 downto 0)));  
+    
+    
     main_mem_addr <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0); -- make generic?
     main_mem_re <= not (not exec_en and decoder_bus(1));
     main_mem_we <= not (exec_en and decoder_bus(2));
