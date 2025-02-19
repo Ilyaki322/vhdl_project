@@ -295,17 +295,17 @@ begin
                     main_memory_re <= '0';
                     cu_en <= '0';
                     status <= init;
-                end if;
-
+                    end if;
+                    
                 when init =>
-                cu_inst_reg_we <= '0';
                 instruction_stack_re <= '1';
+                cu_inst_reg_we <= '0';
                 status <= fetch;
 
                 when fetch =>
                 cu_inst_reg_we <= '1';
                 cu_inst_reg_re <= '0';
-
+                exec_en <= '0';                
                 progCounter <= progCounter + 1;
                 status <= decode;
                 
@@ -321,7 +321,6 @@ begin
                 
                 when memory =>
                 cu_inst_reg_we <= '0';
-                exec_en <= '0';
                 status <= fetch;
 
 
