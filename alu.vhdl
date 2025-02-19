@@ -30,6 +30,8 @@ architecture behevioural of alu is
                 when "0100" =>
                 result <= std_logic_vector(resize(signed(arg_a), result'length) + 
                                            resize(signed(arg_b), result'length));
+                                        report "arg-A: " & to_string(arg_a) & "arg-B: " & to_string(arg_b)
+                                        severity warning;
 
                 when "0101" => 
                 result <= std_logic_vector(resize(signed(arg_a), result'length) - 

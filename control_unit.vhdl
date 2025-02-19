@@ -121,26 +121,26 @@ begin
     opc <= inst_reg_data_out(WIDTH-1 downto WIDTH-DECODER_WIDTH);
 
     --main_data_bus_mux_sel <= decoder_bus(3);
-    main_data_bus_mux_sel <= 0 when decoder_bus(3) = '0' else
+    main_data_bus_mux_sel <= 0 when decoder_bus(1) = '1' or decoder_bus(2) = '1' else
                              1 when decoder_bus(3) = '1' else
                              2;
     reg_sel <= to_integer(unsigned(inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4)));
-    op1 <= 0 when alu_en else to_integer(unsigned(inst_reg_data_out(7 downto 4)));
-    op2 <= 0 when alu_en else to_integer(unsigned(inst_reg_data_out(3 downto 0)));  
+    op1 <= to_integer(unsigned(inst_reg_data_out(7 downto 4)));
+    op2 <= to_integer(unsigned(inst_reg_data_out(3 downto 0)));  
     
     
     main_mem_addr <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0); -- make generic?
     main_mem_re <= not (not exec_en and decoder_bus(1));
     main_mem_we <= not (exec_en and decoder_bus(2));
 
-    reg1_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(1));
-    reg1_re <= not ( not exec_en and decoder_bus(2) and reg_address(1));
-    reg2_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(2));
-    reg2_re <= not ( not exec_en and decoder_bus(2) and reg_address(2));
-    reg3_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(3));
-    reg3_re <= not ( not exec_en and decoder_bus(2) and reg_address(3));
-    reg4_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3)) and reg_address(4));
-    reg4_re <= not ( not exec_en and decoder_bus(2) and reg_address(4));
+    reg1_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3) or decoder_bus(4)) and reg_address(1));
+    reg1_re <= not ( not exec_en and ((decoder_bus(2) and reg_address(1)) or decoder_bus(4)));
+    reg2_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3) or decoder_bus(4)) and reg_address(2));
+    reg2_re <= not ( not exec_en and ((decoder_bus(2) and reg_address(2)) or decoder_bus(4)));
+    reg3_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3) or decoder_bus(4)) and reg_address(3));
+    reg3_re <= not ( not exec_en and ((decoder_bus(2) and reg_address(3)) or decoder_bus(4)));
+    reg4_we <= not ( exec_en and (decoder_bus(1) or decoder_bus(3) or decoder_bus(4)) and reg_address(4));
+    reg4_re <= not ( not exec_en and ((decoder_bus(2) and reg_address(4)) or decoder_bus(4)));
 
     inst_reg : general_register
     generic map(WIDTH)

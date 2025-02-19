@@ -22,7 +22,8 @@ entity mux is
         clk : in std_logic;
         reset : in std_logic;
 
-        selector : in natural range 0 to N - 1;
+        --selector : in natural range 0 to N - 1;
+        selector : in natural;
         inputs : in mux_p.array_t(0 to N - 1)(WIDTH-1 downto 0);
 
         output : out std_logic_vector(WIDTH-1 downto 0)
@@ -38,7 +39,11 @@ begin
         end if;
         --if rising_edge(clk) then
             if enable = '0' then
-                output <= inputs(selector);
+                if selector < N then
+                    output <= inputs(selector);
+                else
+                    output <= (others => '0');
+                end if;
             end if;
         --end if;
     end process;

@@ -223,18 +223,18 @@ begin
 
     reg_sel_1 : mux
     generic map(WIDTH, 5)
-    port map(reset => reset, enable => alu_en, clk => clk, selector => reg_selector_1, inputs(0) => (others => '0'),
+    port map(reset => reset, enable => enable, clk => clk, selector => reg_selector_1, inputs(0) => (others => '0'),
         inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_bus_1);
 
     reg_sel_2 : mux
     generic map(WIDTH, 5)
-    port map(reset => reset, enable => alu_en, clk => clk, selector => reg_selector_2, inputs(0) => (others => '0'),
+    port map(reset => reset, enable => enable, clk => clk, selector => reg_selector_2, inputs(0) => (others => '0'),
         inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_bus_2);
 
     data_bus_mux : mux
     generic map(WIDTH, 3)
     port map(reset => reset, enable => enable, clk => clk, selector => data_bus_mux_sel_nat,
-        inputs(0) => main_ram_bus, inputs(1) => resized_instruction_data, inputs(2) => alu_out, output => data_bus);
+        inputs(0) => main_ram_bus, inputs(1) => main_memory_address, inputs(2) => alu_out, output => data_bus);
 
 
     loadRun_nat <= 0 when external_load = '0' else 1;
@@ -278,7 +278,8 @@ begin
     cu : control_unit
     generic map(WIDTH)
     port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
-    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, main_memory_address, op, alu_en,
+    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re,
+     main_memory_re, main_memory_we, main_memory_address, op, alu_en,
     reg_out_mux_sel, reg_selector_1, reg_selector_2, data_bus_mux_sel_nat);
 
     
@@ -302,10 +303,9 @@ begin
                 status <= fetch;
 
                 when fetch =>
-                --instruction_stack_re <= '1';
                 cu_inst_reg_we <= '1';
                 cu_inst_reg_re <= '0';
-                cu_en <= '0';
+
                 progCounter <= progCounter + 1;
                 status <= decode;
                 
@@ -322,7 +322,6 @@ begin
                 when memory =>
                 cu_inst_reg_we <= '0';
                 exec_en <= '0';
-                cu_en <= '0';
                 status <= fetch;
 
 
@@ -333,9 +332,9 @@ begin
         end if;
    end process;
 
-   process
-    begin
-        wait for 10 ns;
-        report "ALU RES = " & to_string(alu_out);
-    end process;
+   --process
+    --begin
+       -- wait for 10 ns;
+        --report "Data Bus: " & to_string(data_bus) & "SELECTOR: " & to_string(data_bus_mux_sel_nat) severity warning;
+    --end process;
 end behavioral;
