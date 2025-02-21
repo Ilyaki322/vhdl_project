@@ -1,8 +1,17 @@
 assembly_to_bin = {
+    "NOP": "0000",
     "LOAD": "0001",
     "STORE": "0010",
     "LOADI": "0011",
     "ADD": "0100",
+    "SUB": "0101",
+    "MULT": "0110",
+    "OR": "0111",
+    "AND": "1000",
+    "XOR": "1001",
+    "SHL": "1010",
+    "SHR": "1011",
+    "CMP": "1100",
 }
 
 register_address = {

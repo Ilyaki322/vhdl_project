@@ -1,81 +1,73 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 
-entity ALU_tb is
-end ALU_tb;
+entity tb_ALU is
+end entity;
 
-architecture test of ALU_tb is
+architecture testbench of tb_ALU is
+    -- Component Declaration
+    component ALU
+        generic ( WIDTH : integer := 8 );
+        port (
+            A, B    : in  std_logic_vector(WIDTH-1 downto 0);
+            Op      : in  std_logic_vector(3 downto 0);
+            Result  : out std_logic_vector((WIDTH*2)-1 downto 0);
+            clk, en, reset : in  std_logic;
+            ZeroFlag: out std_logic;
+            SignFlag: out std_logic
+        );
+    end component;
 
-    constant WIDTH : integer := 4;
-
-    signal clk : std_logic := '0';
-    signal reset : std_logic := '0';
-    signal enable : std_logic := '1';
-
-    signal a_vec : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    signal b_vec : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    signal op : std_logic_vector(3 downto 0) := (others => '0');
-
-    signal res : std_logic_vector(2 * (WIDTH-1) downto 0);
-
-    component alu
-    generic (
-        WIDTH : integer := 16
-    );
-    Port(
-        enable: in std_logic;
-        clk: in std_logic;
-        reset: in std_logic;
-
-        arg_a: in std_logic_vector(WIDTH-1 downto 0);
-        arg_b: in std_logic_vector(WIDTH-1 downto 0);
-        op: in std_logic_vector(3 downto 0);
-
-        result: out std_logic_vector(2 * (WIDTH-1) downto 0)
-    );
-   end component;
-
-   procedure test(signal a, b : out std_logic_vector(WIDTH-1 downto 0);
-                  signal op : out std_logic_vector(3 downto 0);
-                  constant sig_a : in integer;
-                  constant sig_b : in integer;
-                  constant sig_op: in std_logic_vector(3 downto 0);
-                  signal clk : out std_logic) is
-    begin
-        clk <= '1';
-
-        wait for 20 ns;
-        b <= std_logic_vector(to_signed(sig_b, WIDTH));
-        a <= std_logic_vector(to_signed(sig_a, WIDTH));
-        op <= sig_op;
-
-        wait for 30 ns;
-        clk <= '0';
-        wait for 50 ns;
-
-        
-    end procedure;
-
+    constant Width_tb : integer := 8;
+    -- Testbench Signals
+    signal clk_tb, en_tb, reset_tb : std_logic := '1';
+    signal A_tb, B_tb    : std_logic_vector((Width_tb)-1 downto 0) := (others => '0');
+    signal Op_tb      : std_logic_vector(3 downto 0);
+    signal Result_tb  : std_logic_vector((Width_tb*2)-1 downto 0) := (others => '0');
+    signal ZeroFlag_tb, SignFlag_tb : std_logic := '0';
+    
+    constant clock_time : time := 20 ns;
+    -- File handling signals
+    file infile  : text open read_mode is "alu_input.txt";
 begin
+    -- Instantiate ALU
+    uut: ALU
+        generic map (Width_tb)
+        port map (
+            A_tb, B_tb, Op_tb, Result_tb, clk_tb, en_tb, reset_tb,
+            ZeroFlag_tb, SignFlag_tb);
 
-    p_test: process
+    process
     begin
-        test(a_vec, b_vec, op, 0, 0, "0000", clk);
-        test(a_vec, b_vec, op, 7, 7, "0100", clk);
-        test(a_vec, b_vec, op, -5, 2, "0101", clk);
-        test(a_vec, b_vec, op, 5, 3, "0110", clk);
+        clk_tb <= '0'; wait for clock_time / 2;
+        clk_tb <= '1'; wait for clock_time / 2;
     end process;
 
-    uut : ALU
-    generic map (
-        WIDTH
-    )
-    port map(
-        enable, clk, reset, a_vec, b_vec, op, res
-    );
+    process
+        variable inline  : line;
+        variable val_A, val_B, val_Op : integer;
+        variable temp_Op : std_logic_vector(3 downto 0);
+    begin
+        reset_tb <= '0'; wait for clock_time;
+        reset_tb <= '1';
+        en_tb <= '0';
+        while not endfile(infile) loop
 
-    reset <= '0', '1' after 100 ns;
-    enable <= '1', '0' after 100 ns;
+            readline(infile, inline);
+            read(inline, val_A);
+            read(inline, val_B);
+            read(inline, temp_Op);
 
-end test;
+
+            A_tb <= std_logic_vector(to_signed(val_A, Width_tb));
+            B_tb <= std_logic_vector(to_signed(val_B, Width_tb));
+
+            Op_tb <= temp_Op;
+            
+            wait for clock_time;
+        end loop;
+        wait;
+    end process;
+end architecture testbench;
