@@ -37,7 +37,7 @@ begin
         if reset = '0' then
             output <= (others => '0');
         end if;
-        --if rising_edge(clk) then
+        if rising_edge(clk) then
             if enable = '0' then
                 if selector < N then
                     output <= inputs(selector);
@@ -45,6 +45,6 @@ begin
                     output <= (others => '0');
                 end if;
             end if;
-        --end if;
+        end if;
     end process;
 end behavioral;

@@ -36,7 +36,6 @@ architecture behavioral of cpu is
     signal reg_selector_1 : natural := 0;
     signal reg_selector_2 : natural := 0;
 
-
     signal reg_out_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal reg_out_mux_sel : natural := 0;
 
@@ -90,7 +89,7 @@ architecture behavioral of cpu is
 
     signal resized_instruction_data : std_logic_vector(WIDTH-1 downto 0);
 
-    component control_unit
+    component control_unit_v2
     Generic (
         WIDTH : integer := 16
     );
@@ -99,7 +98,6 @@ architecture behavioral of cpu is
         clk : in std_logic;
         reset : in std_logic;
 
-        exec_en : in std_logic;
         inst_we : in std_logic; 
         inst_re : in std_logic;
         inst : in std_logic_vector(WIDTH-1 downto 0);
@@ -207,16 +205,6 @@ architecture behavioral of cpu is
 
 begin
 
-
-    --signal alu_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    --signal op : std_logic_vector(3 downto 0); -- make generic?
-
-    --signal reg_bus_1 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    --signal reg_bus_2 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');  
-    --signal reg_selector_1 : natural := 0;
-    --signal reg_selector_2 : natural := 0;
-
-
     alu_1 : alu
     generic map(WIDTH/2)
     port map(enable, clk, reset, reg_bus_1(7 downto 0), reg_bus_2(7 downto 0), op, alu_out);
@@ -275,9 +263,9 @@ begin
     generic map(WIDTH)
     port map(clk, reset, reg4_we, reg4_re, data_bus, reg4_data);
 
-    cu : control_unit
+    cu : control_unit_v2
     generic map(WIDTH)
-    port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
+    port map(cu_en, clk, reset, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
     reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re,
      main_memory_re, main_memory_we, main_memory_address, op, alu_en,
     reg_out_mux_sel, reg_selector_1, reg_selector_2, data_bus_mux_sel_nat);
@@ -298,9 +286,11 @@ begin
                     end if;
                     
                 when init =>
-                instruction_stack_re <= '1';
+                --instruction_stack_re <= '1';
                 cu_inst_reg_we <= '0';
-                status <= fetch;
+                cu_inst_reg_re <= '0';
+                progCounter <= progCounter + 1;
+                --status <= fetch;
 
                 when fetch =>
                 cu_inst_reg_we <= '1';
