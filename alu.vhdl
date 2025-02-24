@@ -25,7 +25,7 @@ architecture behevioural of alu is
         if reset = '0' then
             result  <= (others => '0');
 
-        elsif rising_edge(clk) and enable = '0' then
+        elsif enable = '0' then
             case op is
                 when "0100" =>
                 result <= std_logic_vector(resize(signed(arg_a), result'length) + 

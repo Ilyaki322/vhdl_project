@@ -323,7 +323,7 @@ begin
 
    --process
     --begin
-       -- wait for 10 ns;
-        --report "Data Bus: " & to_string(data_bus) & "SELECTOR: " & to_string(data_bus_mux_sel_nat) severity warning;
+        --wait for 10 ns;
+        --report "alu: " & to_string(data_bus);
     --end process;
 end behavioral;
