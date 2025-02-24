@@ -177,12 +177,7 @@ begin
     op1 <= op1_shift(1);
     op2 <= op2_shift(1);
     
-    --target_delay_1 <= "0101" when (decoder_bus(2)) else
-                      --target; -- else prog counter;
     target_delay_1 <= target;
-
-    --addr_delay_2 <= addr_delay_1;
-    --opc_delay_2 <= opc_delay_1;
 
     reg1_re <= not ((decoder_bus(4) and to_stdlogic(op1_sig = 1 or op2_sig = 1))
      or (to_stdlogic(to_integer(unsigned(store_target)) = 1)));
@@ -193,7 +188,7 @@ begin
     reg4_re <= not ((decoder_bus(4) and to_stdlogic(op1_sig = 4 or op2_sig = 4))
      or (to_stdlogic(to_integer(unsigned(store_target)) = 4)));
 
-    exec_selector <= "0001" when (not decoder_bus(0) or not decoder_bus(1) or not decoder_bus(2)) else
+    exec_selector <= "0001" when (not decoder_bus(0) and not decoder_bus(1) and not decoder_bus(2)) else
                      "0010" when (decoder_bus(1)) else
                      "0000";
 
@@ -210,23 +205,18 @@ begin
     port map(enable, clk, reset, exec_selector , exec_decoder_bus);
 
     alu_en <= not exec_decoder_bus(1);
-    main_mem_re <= not exec_decoder_bus(2);
+    main_mem_re <= not decoder_bus(1);
 
-    --write_back_selector <= ;
-
-    --target_delay_2 <= target_delay_1;
-    --addr_delay_3 <= addr_delay_2;
-
+    addr_delay_2 <= addr_delay_shift(WIDTH-1 downto 0);
     addr_delay_3 <= addr_delay_shift(3*WIDTH-1 downto 2*WIDTH);
+
     input_data <= addr_delay_shift(2*WIDTH-1 downto 1*WIDTH);
-    opc  <= opc_delay_shift(3*4-1 downto 2*4);
-    --opc_delay_3  <= opc_delay_shift(3*4-1 downto 2*4);
+
+    opc <= opc_delay_shift(3*4-1 downto 2*4);
+
     target_delay_2 <= target_delay_shift(3*REG_DECODER_WIDTH-1 downto 2*REG_DECODER_WIDTH);
 
-
-    --opc <= opc_delay_2;
     data_sel_delay <= data_sel_shift(1);
-
 
     ---------------------------------------------------------------------------------------------------------
 
@@ -239,8 +229,10 @@ begin
     reg2_we <= not write_back_decoder_bus(2);
     reg3_we <= not write_back_decoder_bus(3);
     reg4_we <= not write_back_decoder_bus(4);
+
     main_mem_we <= not write_back_decoder_bus(5);
-    main_mem_addr <= addr_delay_3;
+    main_mem_addr <= addr_delay_2 when decoder_bus(1) else addr_delay_3;
+
     main_data_bus_mux_sel <= data_sel_delay;
     reg_sel <= to_integer(unsigned(store_target));
     
@@ -259,7 +251,6 @@ begin
             opc_delay_shift(3*4-1 downto 2*4) <= opc_delay_shift(2*4-1 downto 1*4);
     
             target_delay_shift(REG_DECODER_WIDTH-1 downto 0) <= target_delay_1;
-            --target_delay_shift(2*REG_DECODER_WIDTH-1 downto REG_DECODER_WIDTH) <= target_delay_shift(REG_DECODER_WIDTH-1 downto 0) when not decoder_bus(2);
             if not decoder_bus(2) then
                 target_delay_shift(2*REG_DECODER_WIDTH-1 downto REG_DECODER_WIDTH) <= target_delay_shift(REG_DECODER_WIDTH-1 downto 0);
             end if;
@@ -289,7 +280,8 @@ begin
     --process
     --begin
         --report "bus = " & to_string(decoder_bus(4)) & " " & to_string(op1)  & " " & to_string(op2);
-        --report "tar = " & to_string(target_delay_shift);
+        --report "addr = " & to_string(main_mem_addr);
+        --report "shift = " & to_string(addr_delay_shift);
         --wait for 10 ns;
     --end process;
 end behavioral;

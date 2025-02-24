@@ -284,7 +284,6 @@ begin
                 when start =>
                 if load = '1' then
                     instruction_stack_re <= '0';
-                    main_memory_re <= '0';
                     cu_en <= '0';
                     status <= init;
                     end if;
@@ -325,9 +324,10 @@ begin
         end if;
    end process;
 
-   process
-    begin
-        wait for 10 ns;
-        report "data_bus: " & to_string(reg_out_mux_sel);
-    end process;
+   --process
+    --begin
+        --wait for 10 ns;
+        --report "ram: " & to_string(main_ram_bus);
+        --report "data: " & to_string(data_bus);
+    --end process;
 end behavioral;
