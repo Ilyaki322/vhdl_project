@@ -27,6 +27,8 @@ architecture behavioral of cpu is
     type state is (start, init, fetch, decode, execute, memory);
     signal status : state := start;
 
+    signal input_data : std_logic_vector(WIDTH - 1 downto 0) := (others => '0');
+
     signal alu_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal op : std_logic_vector(3 downto 0); -- make generic?
     signal alu_en : std_logic := '1';
@@ -110,6 +112,8 @@ architecture behavioral of cpu is
         main_mem_re : out std_logic;
         main_mem_we : out std_logic;
         main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
+
+        input_data : out std_logic_vector(WIDTH-1 downto 0);
 
         opc : out std_logic_vector(3 downto 0);
         alu_en : out std_logic;
@@ -222,7 +226,7 @@ begin
     data_bus_mux : mux
     generic map(WIDTH, 3)
     port map(reset => reset, enable => enable, clk => clk, selector => data_bus_mux_sel_nat,
-        inputs(0) => main_ram_bus, inputs(1) => main_memory_address, inputs(2) => alu_out, output => data_bus);
+        inputs(0) => main_ram_bus, inputs(1) => input_data, inputs(2) => alu_out, output => data_bus);
 
 
     loadRun_nat <= 0 when external_load = '0' else 1;
@@ -267,7 +271,7 @@ begin
     generic map(WIDTH)
     port map(cu_en, clk, reset, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
     reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re,
-     main_memory_re, main_memory_we, main_memory_address, op, alu_en,
+     main_memory_re, main_memory_we, main_memory_address, input_data, op, alu_en,
     reg_out_mux_sel, reg_selector_1, reg_selector_2, data_bus_mux_sel_nat);
 
     
@@ -321,9 +325,9 @@ begin
         end if;
    end process;
 
-   --process
-    --begin
-        --wait for 10 ns;
-        --report "alu: " & to_string(data_bus);
-    --end process;
+   process
+    begin
+        wait for 10 ns;
+        report "data_bus: " & to_string(reg_out_mux_sel);
+    end process;
 end behavioral;
