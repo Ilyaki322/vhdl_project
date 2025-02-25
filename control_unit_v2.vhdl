@@ -61,6 +61,8 @@ architecture behavioral of control_unit_v2 is
 
     signal exec_selector : std_logic_vector(DECODER_WIDTH-1 downto 0) := (others => '0');
 
+    signal load_from : std_logic_vector(7 downto 0) := (others => '0');
+
     signal target_delay_1 : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
     signal target_delay_2 : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
     signal target : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
@@ -68,7 +70,7 @@ architecture behavioral of control_unit_v2 is
 
     signal opc_delay_shift : std_logic_vector(3*4-1 downto 0) := (others => '0');
     signal target_delay_shift : std_logic_vector(4*REG_DECODER_WIDTH-1 downto 0) := (others => '0');
-    signal addr_delay_shift : std_logic_vector(3*WIDTH-1 downto 0) := (others => '0');
+    signal addr_delay_shift : std_logic_vector(4*WIDTH-1 downto 0) := (others => '0');
 
     signal addr_delay_1 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal addr_delay_2 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
@@ -166,7 +168,7 @@ begin
 
     ---------------------------------------------------------------------------------------------------------
 
-    target <= inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4);
+    target_delay_1 <= inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4);
     addr_delay_1 <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0);
     opc_delay_1 <= inst_reg_data_out(WIDTH-1 downto WIDTH-DECODER_WIDTH);
 
@@ -176,8 +178,6 @@ begin
     op2_sig <= op2_shift(0);
     op1 <= op1_shift(1);
     op2 <= op2_shift(1);
-    
-    target_delay_1 <= target;
 
     reg1_re <= not ((decoder_bus(4) and to_stdlogic(op1_sig = 1 or op2_sig = 1))
      or (to_stdlogic(to_integer(unsigned(store_target)) = 1)));
@@ -207,10 +207,10 @@ begin
     alu_en <= not exec_decoder_bus(1);
     main_mem_re <= not decoder_bus(1);
 
-    addr_delay_2 <= addr_delay_shift(WIDTH-1 downto 0);
+    addr_delay_2 <= addr_delay_shift(4*WIDTH-1 downto 3*WIDTH);
     addr_delay_3 <= addr_delay_shift(3*WIDTH-1 downto 2*WIDTH);
 
-    input_data <= addr_delay_shift(2*WIDTH-1 downto 1*WIDTH);
+    input_data <= addr_delay_shift(3*WIDTH-1 downto 2*WIDTH);
 
     opc <= opc_delay_shift(3*4-1 downto 2*4);
 
@@ -231,7 +231,8 @@ begin
     reg4_we <= not write_back_decoder_bus(4);
 
     main_mem_we <= not write_back_decoder_bus(5);
-    main_mem_addr <= addr_delay_2 when decoder_bus(1) else addr_delay_3;
+    main_mem_addr <= addr_delay_shift(WIDTH-1 downto 0) when decoder_bus(1) else addr_delay_2; -- when decoder_bus(1) else addr_delay_3;
+    --main_mem_addr <= addr_delay_2; -- when decoder_bus(1) else addr_delay_3;
 
     main_data_bus_mux_sel <= data_sel_delay;
     reg_sel <= to_integer(unsigned(store_target));
@@ -245,21 +246,18 @@ begin
             addr_delay_shift(WIDTH-1 downto 0) <= addr_delay_1;
             addr_delay_shift(2*WIDTH-1 downto WIDTH) <= addr_delay_shift(WIDTH-1 downto 0);
             addr_delay_shift(3*WIDTH-1 downto 2*WIDTH) <= addr_delay_shift(2*WIDTH-1 downto WIDTH);
+            addr_delay_shift(4*WIDTH-1 downto 3*WIDTH) <= addr_delay_shift(3*WIDTH-1 downto 2*WIDTH);
 
             opc_delay_shift(1*4-1 downto 0) <= opc_delay_1;
             opc_delay_shift(2*4-1 downto 1*4) <= opc_delay_shift(1*4-1 downto 0);
             opc_delay_shift(3*4-1 downto 2*4) <= opc_delay_shift(2*4-1 downto 1*4);
     
             target_delay_shift(REG_DECODER_WIDTH-1 downto 0) <= target_delay_1;
-            if not decoder_bus(2) then
-                target_delay_shift(2*REG_DECODER_WIDTH-1 downto REG_DECODER_WIDTH) <= target_delay_shift(REG_DECODER_WIDTH-1 downto 0);
-            end if;
-            else target_delay_shift(2*REG_DECODER_WIDTH-1 downto REG_DECODER_WIDTH) <= "0101";
+            target_delay_shift(2*REG_DECODER_WIDTH-1 downto REG_DECODER_WIDTH) <= "0101" when decoder_bus(2) else target_delay_shift(REG_DECODER_WIDTH-1 downto 0);
             target_delay_shift(3*REG_DECODER_WIDTH-1 downto 2*REG_DECODER_WIDTH) <= target_delay_shift(2*REG_DECODER_WIDTH-1 downto REG_DECODER_WIDTH);
 
             data_sel_shift(0) <= data_sel;
             data_sel_shift(1) <= data_sel_shift(0);
-            --data_sel_shift(2) <= data_sel_shift(1);
 
             op1_shift(0) <= to_integer(unsigned(inst_reg_data_out(7 downto 4)));
             op2_shift(0) <= to_integer(unsigned(inst_reg_data_out(3 downto 0)));
@@ -280,7 +278,6 @@ begin
     --process
     --begin
         --report "bus = " & to_string(decoder_bus(4)) & " " & to_string(op1)  & " " & to_string(op2);
-        --report "addr = " & to_string(main_mem_addr);
         --report "shift = " & to_string(addr_delay_shift);
         --wait for 10 ns;
     --end process;
