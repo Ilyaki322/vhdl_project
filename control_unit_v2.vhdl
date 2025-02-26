@@ -179,13 +179,13 @@ begin
     op1 <= op1_shift(1);
     op2 <= op2_shift(1);
 
-    reg1_re <= not ((decoder_bus(4) and to_stdlogic(op1_sig = 1 or op2_sig = 1))
+    reg1_re <= not (((not decoder_bus(0) and not decoder_bus(1) and not decoder_bus(2) and not decoder_bus(3)) and to_stdlogic(op1_sig = 1 or op2_sig = 1))
      or (to_stdlogic(to_integer(unsigned(store_target)) = 1)));
-    reg2_re <= not ((decoder_bus(4) and to_stdlogic(op1_sig = 2 or op2_sig = 2))
+    reg2_re <= not (((not decoder_bus(0) and not decoder_bus(1) and not decoder_bus(2) and not decoder_bus(3)) and to_stdlogic(op1_sig = 2 or op2_sig = 2))
      or (to_stdlogic(to_integer(unsigned(store_target)) = 2)));
-    reg3_re <= not ((decoder_bus(4) and to_stdlogic(op1_sig = 3 or op2_sig = 3))
+    reg3_re <= not (((not decoder_bus(0) and not decoder_bus(1) and not decoder_bus(2) and not decoder_bus(3)) and to_stdlogic(op1_sig = 3 or op2_sig = 3))
      or (to_stdlogic(to_integer(unsigned(store_target)) = 3)));
-    reg4_re <= not ((decoder_bus(4) and to_stdlogic(op1_sig = 4 or op2_sig = 4))
+    reg4_re <= not (((not decoder_bus(0) and not decoder_bus(1) and not decoder_bus(2) and not decoder_bus(3)) and to_stdlogic(op1_sig = 4 or op2_sig = 4))
      or (to_stdlogic(to_integer(unsigned(store_target)) = 4)));
 
     exec_selector <= "0001" when (not decoder_bus(0) and not decoder_bus(1) and not decoder_bus(2)) else

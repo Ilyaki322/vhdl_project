@@ -32,6 +32,8 @@ architecture behavioral of cpu is
     signal alu_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal op : std_logic_vector(3 downto 0); -- make generic?
     signal alu_en : std_logic := '1';
+    signal zero_flag : std_logic := '0';
+    signal sign_flag : std_logic := '0';
 
     signal reg_bus_1 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal reg_bus_2 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');  
@@ -191,19 +193,20 @@ architecture behavioral of cpu is
     end component;
 
     component alu
-    generic (
-        WIDTH : integer := 16
-    );
-    Port(
-        enable: in std_logic;
-        clk: in std_logic;
-        reset: in std_logic;
+    generic ( WIDTH : integer := 8 );
+    port (
+        enable : in std_logic;
+        clk : in std_logic;
+        reset : in std_logic;
 
-        arg_a: in std_logic_vector(WIDTH-1 downto 0);
-        arg_b: in std_logic_vector(WIDTH-1 downto 0);
-        op: in std_logic_vector(3 downto 0);
+        arg_a : in  std_logic_vector(WIDTH-1 downto 0);
+        arg_b : in  std_logic_vector(WIDTH-1 downto 0);
+        op  : in  std_logic_vector(3 downto 0);
 
-        result: out std_logic_vector((2*WIDTH)-1 downto 0)
+        result : out std_logic_vector((WIDTH*2)-1 downto 0);
+
+        zero_flag : out std_logic;
+        sign_flag : out std_logic        
     );
     end component;
 
@@ -211,7 +214,7 @@ begin
 
     alu_1 : alu
     generic map(WIDTH/2)
-    port map(enable, clk, reset, reg_bus_1(7 downto 0), reg_bus_2(7 downto 0), op, alu_out);
+    port map(enable, clk, reset, reg_bus_1(7 downto 0), reg_bus_2(7 downto 0), op, alu_out, zero_flag, sign_flag);
 
     reg_sel_1 : mux
     generic map(WIDTH, 5)
@@ -327,7 +330,8 @@ begin
    --process
     --begin
         --wait for 10 ns;
-        --report "ram: " & to_string(main_ram_bus);
-        --report "data: " & to_string(data_bus);
+        --report "res: " & to_string(alu_out);
+        --report "zf: " & to_string(zero_flag);
+        --report "sf: " & to_string(sign_flag);
     --end process;
 end behavioral;
