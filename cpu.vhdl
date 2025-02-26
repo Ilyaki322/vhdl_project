@@ -1,99 +1,101 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.std_logic_unsigned.all;
 use work.mux_p;
+use work.CPU_Types.all;
 
 entity cpu is
     Generic (
         WIDTH : integer := 16;
-        MEM_SIZE : integer := 16
+        MEM_SIZE : integer := 8
     );
     Port(
-        enable, load : in std_logic;
+        enable : in std_logic;
         clk : in std_logic;
-        reset : in std_logic;
-
-        external_en : in std_logic;
-        external_data  : in std_logic_vector(WIDTH-1 downto 0);
-        external_addr  : in std_logic_vector(WIDTH-1 downto 0);
-        --external_addr  : in std_logic_vector(MEM_SIZE-1 downto 0);
-        external_load : in std_logic  -- '0' = load, '1' = run
+        reset : in std_logic
     );
 end cpu;
 
 architecture behavioral of cpu is
 
-    type state is (start, init, fetch, decode, execute, memory);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    type state is (fetch, decode, execute, memory);
+    signal status : state := fetch;
+=======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+    type state is (start, init);
     signal status : state := start;
+>>>>>>> Stashed changes
 
-    signal input_data : std_logic_vector(WIDTH - 1 downto 0) := (others => '0');
+    signal data_bus : std_logic_vector(WIDTH-1 downto 0);
+    signal main_ram_bus : std_logic_vector(WIDTH-1 downto 0);
 
-    signal alu_out : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    signal op : std_logic_vector(3 downto 0); -- make generic?
-    signal alu_en : std_logic := '1';
-    signal zero_flag : std_logic := '0';
-    signal sign_flag : std_logic := '0';
-
-    signal reg_bus_1 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    signal reg_bus_2 : std_logic_vector(WIDTH-1 downto 0) := (others => '0');  
-    signal reg_selector_1 : natural := 0;
-    signal reg_selector_2 : natural := 0;
-
-    signal reg_out_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    signal reg_out_mux_sel : natural := 0;
-
-    signal data_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-    signal main_ram_bus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-
-    signal reg1_we : std_logic := '1';
-    signal reg1_re : std_logic := '1';
+    signal reg1_we, reg1_re : std_logic;
     signal reg1_data : std_logic_vector(WIDTH-1 downto 0);
 
-    signal reg2_we : std_logic := '1';
-    signal reg2_re : std_logic := '1';
+    signal reg2_we, reg2_re : std_logic;
     signal reg2_data : std_logic_vector(WIDTH-1 downto 0);
 
-    signal reg3_we : std_logic := '1';
-    signal reg3_re : std_logic := '1';
+    signal reg3_we, reg3_re : std_logic;
     signal reg3_data : std_logic_vector(WIDTH-1 downto 0);
 
-    signal reg4_we : std_logic := '1';
-    signal reg4_re : std_logic := '1';
+    signal reg4_we, reg4_re : std_logic;
     signal reg4_data : std_logic_vector(WIDTH-1 downto 0);
 
     signal main_memory_re : std_logic := '1';    
     signal main_memory_we : std_logic := '1';
-    --signal main_memory_address : std_logic_vector(MEM_SIZE-1 downto 0);
-    signal main_memory_address : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    signal main_memory_address : std_logic_vector(MEM_SIZE-1 downto 0);
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     signal instruction_reg_we, instruction_reg_re : std_logic;
-    --signal instruction_reg_data : std_logic_vector(WIDTH-1 downto 0);
-    signal instruction_bus : std_logic_vector(WIDTH-1 downto 0) ;--:= (others => '0');
+    signal instruction_reg_data : std_logic_vector(WIDTH-1 downto 0);
+    signal instruction_bus : std_logic_vector(WIDTH-1 downto 0);
+=======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+    signal instruction_bus : std_logic_vector(WIDTH-1 downto 0);--:= (others => '0');
+    signal hazard_out_inst : std_logic_vector(WIDTH-1 downto 0);
 
     --signal progCounter : std_logic_vector(MEM_SIZE-1 downto 0) := (others => '0');
     signal progCounter : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
     signal progCounterBus : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+>>>>>>> Stashed changes
 
     signal instruction_stack_re : std_logic := '1';    
-    signal instruction_stack_we : std_logic := '1';
+    --signal instruction_stack_we : std_logic := '1'; ?
 
-    signal exec_en : std_logic := '1';
     signal cu_inst_reg_re : std_logic := '1';    
     signal cu_inst_reg_we : std_logic := '1';
 
-    --signal dataMux_en : std_logic;
     signal data_bus_mux_sel : std_logic := '0';
-    signal data_bus_mux_sel_nat : natural := 0;
+    signal data_bus_mux_sel_nat : natural;
 
     signal cu_en : std_logic := '1';
 
-    signal loadRun_selector : std_logic := '0';
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    component control_unit
+=======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     signal loadRun_nat : natural := 0;
 
     signal resized_instruction_data : std_logic_vector(WIDTH-1 downto 0);
 
     component control_unit_v2
+>>>>>>> Stashed changes
     Generic (
         WIDTH : integer := 16
     );
@@ -102,6 +104,7 @@ architecture behavioral of cpu is
         clk : in std_logic;
         reset : in std_logic;
 
+        exec_en : in std_logic;
         inst_we : in std_logic; 
         inst_re : in std_logic;
         inst : in std_logic_vector(WIDTH-1 downto 0);
@@ -113,23 +116,23 @@ architecture behavioral of cpu is
         
         main_mem_re : out std_logic;
         main_mem_we : out std_logic;
-        main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
-        input_data : out std_logic_vector(WIDTH-1 downto 0);
-
-        opc : out std_logic_vector(3 downto 0);
-        alu_en : out std_logic;
-
-        reg_sel : out natural;
-        op1 : out natural;
-        op2 : out natural;
-        main_data_bus_mux_sel : out natural
+        main_data_bus_mux_sel : out std_logic
     );
     end component;
 
+    component HazardUnit
+        Port (
+            clk, reset, enable : in std_logic;
+            instr_in      : in  Instruction;
+            instr_out   : out std_logic_vector(15 downto 0);
+            prog_counter : out std_logic_vector(15 downto 0) := (others => '0')
+        );
+        end component;
+
     component general_register
     Generic (
-        WIDTH : integer := 16
+        WIDTH : integer := 8
     );
     Port(
         clk : in std_logic;
@@ -138,7 +141,7 @@ architecture behavioral of cpu is
         we : in std_logic;
         re : in std_logic;
 
-        data_bus : in std_logic_vector(WIDTH-1 downto 0);
+        data_bus : inout std_logic_vector(WIDTH-1 downto 0);
         register_data : out std_logic_vector(WIDTH-1 downto 0)
     );
     end component;
@@ -156,23 +159,21 @@ architecture behavioral of cpu is
         write_enable : in std_logic;
 
         address : in std_logic_vector(WIDTH-1 downto 0);
-        data_bus : out std_logic_vector(WIDTH-1 downto 0);
-        data_busIn : in std_logic_vector(WIDTH-1 downto 0)
+        data_bus : inout std_logic_vector(WIDTH-1 downto 0)
     );
     end component;
 
     component mux
     Generic (
-        WIDTH : integer := 16;
+        WIDTH : integer := 8;
         N : integer := 4 -- number of input ports
     );
     Port(
         enable : in std_logic;
         clk : in std_logic;
-        reset : in std_logic;
 
         selector : in natural range 0 to N - 1;
-        inputs : in mux_p.array_t(0 to N - 1)(WIDTH-1 downto 0);
+        inputs : in mux_p.array_t(0 to WIDTH - 1)(N - 1 downto 0);
 
         output : out std_logic_vector(WIDTH-1 downto 0)
         );
@@ -192,67 +193,20 @@ architecture behavioral of cpu is
     );
     end component;
 
-    component alu
-    generic ( WIDTH : integer := 8 );
-    port (
-        enable : in std_logic;
-        clk : in std_logic;
-        reset : in std_logic;
-
-        arg_a : in  std_logic_vector(WIDTH-1 downto 0);
-        arg_b : in  std_logic_vector(WIDTH-1 downto 0);
-        op  : in  std_logic_vector(3 downto 0);
-
-        result : out std_logic_vector((WIDTH*2)-1 downto 0);
-
-        zero_flag : out std_logic;
-        sign_flag : out std_logic        
-    );
-    end component;
-
 begin
 
-    alu_1 : alu
-    generic map(WIDTH/2)
-    port map(enable, clk, reset, reg_bus_1(7 downto 0), reg_bus_2(7 downto 0), op, alu_out, zero_flag, sign_flag);
-
-    reg_sel_1 : mux
-    generic map(WIDTH, 5)
-    port map(reset => reset, enable => enable, clk => clk, selector => reg_selector_1, inputs(0) => (others => '0'),
-        inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_bus_1);
-
-    reg_sel_2 : mux
-    generic map(WIDTH, 5)
-    port map(reset => reset, enable => enable, clk => clk, selector => reg_selector_2, inputs(0) => (others => '0'),
-        inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_bus_2);
-
-    data_bus_mux : mux
-    generic map(WIDTH, 3)
-    port map(reset => reset, enable => enable, clk => clk, selector => data_bus_mux_sel_nat,
-        inputs(0) => main_ram_bus, inputs(1) => input_data, inputs(2) => alu_out, output => data_bus);
-
-
-    loadRun_nat <= 0 when external_load = '0' else 1;
-    --data_bus_mux_sel_nat <= 0 when data_bus_mux_sel = '0' else 1;
-    resized_instruction_data <= std_logic_vector(resize(unsigned(instruction_bus(7 downto 0)), WIDTH));
-
-    reg_data_mux : mux
-    generic map(WIDTH, 5)
-    port map(reset => reset, enable => enable, clk => clk, selector => reg_out_mux_sel, inputs(0) => (others => '0'),
-        inputs(1) => reg1_data, inputs(2) => reg2_data, inputs(3) => reg3_data, inputs(4) => reg4_data, output => reg_out_bus);
-
-    instruction_addr_mux : mux
-    generic map(WIDTH, 2)
-    port map(reset => reset, enable => external_en and enable, clk => clk, selector => loadRun_nat,
-        inputs(0) => external_addr, inputs(1) => progCounter, output => progCounterBus);
-
+    data_bus_mux_sel_nat <= 0 when data_bus_mux_sel = '0' else 1;
     main_mem : ram
     generic map(WIDTH, MEM_SIZE)
-    port map(clk, reset, main_memory_re, main_memory_we, main_memory_address, main_ram_bus, reg_out_bus);
+    port map(clk, reset, main_memory_re, main_memory_we, main_memory_address, main_ram_bus);
+
+    inst_reg : general_register -- program counter
+    generic map(WIDTH)
+    port map(clk, reset, instruction_reg_we, instruction_reg_re, data_bus, instruction_reg_data);
 
     inst_stack : ram
     generic map(WIDTH, MEM_SIZE)
-    port map(clk, reset, instruction_stack_re, external_en, progCounterBus, instruction_bus, external_data);
+    port map(clk, reset, instruction_stack_re, instruction_stack_we, instruction_reg_data, instruction_bus);
 
     reg1 : general_register
     generic map(WIDTH)
@@ -270,20 +224,66 @@ begin
     generic map(WIDTH)
     port map(clk, reset, reg4_we, reg4_re, data_bus, reg4_data);
 
-    cu : control_unit_v2
+    cu : control_unit
     generic map(WIDTH)
-    port map(cu_en, clk, reset, cu_inst_reg_we, cu_inst_reg_re, instruction_bus, 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    port map(cu_en, clk, reset, exec_en, cu_inst_reg_we, cu_inst_reg_re, instruction_reg_data, 
+    reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re, main_memory_re, main_memory_we, data_bus_mux_sel);
+
+    data_bus_mux : mux
+    generic map(WIDTH, 2)
+    port map(enable => enable, clk => clk, selector => data_bus_mux_sel_nat,
+         inputs(0) => main_ram_bus, inputs(1) => instruction_reg_data(7 downto 0), output => data_bus);
+
+
+=======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+    port map(cu_en, clk, reset, cu_inst_reg_we, cu_inst_reg_re, hazard_out_inst, 
     reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re,
      main_memory_re, main_memory_we, main_memory_address, input_data, op, alu_en,
     reg_out_mux_sel, reg_selector_1, reg_selector_2, data_bus_mux_sel_nat);
 
+    hazard_u : HazardUnit
+        port map(clk => clk, reset => reset, enable => enable, instr_in.opcode => instruction_bus(15 downto 12),
+                                     instr_in.dest => instruction_bus(11 downto 8),
+                                     instr_in.src1 => instruction_bus(7 downto 4),
+                                     instr_in.src2 => instruction_bus(3 downto 0),instr_out => hazard_out_inst, prog_counter => progCounter);
     
+>>>>>>> Stashed changes
     process (clk) begin
         if reset = '0' then
-            -- reset
+            -- we need this?
 
         elsif rising_edge(clk) then
             case status is
+<<<<<<< Updated upstream
+                when fetch =>
+                exec_en <= '1';
+                cu_en <= '1';
+                instruction_stack_re <= '0';
+                cu_inst_reg_we <= '0';
+                status <= decode;
+                    
+                when decode =>
+                instruction_stack_re <= '1';
+                cu_inst_reg_we <= '1';
+                cu_inst_reg_re <= '0';
+                cu_en <= '0';
+                status <= execute;
+                    
+                when execute =>
+                exec_en <= '0';
+                status <= fetch;
+                
+                when memory =>
+
+
+=======
                 when start =>
                 if load = '1' then
                     instruction_stack_re <= '0';
@@ -292,46 +292,18 @@ begin
                     end if;
                     
                 when init =>
-                --instruction_stack_re <= '1';
                 cu_inst_reg_we <= '0';
                 cu_inst_reg_re <= '0';
-                progCounter <= progCounter + 1;
-                --status <= fetch;
-
-                when fetch =>
-                cu_inst_reg_we <= '1';
-                cu_inst_reg_re <= '0';
-                exec_en <= '0';                
-                progCounter <= progCounter + 1;
-                status <= decode;
-                
-                when decode =>
-                cu_inst_reg_re <= '1';
-                exec_en <= '0';
-                status <= execute;
-                
-                when execute =>
-                instruction_stack_re <= '0';
-                exec_en <= '1';
-                status <= memory;
-                
-                when memory =>
-                cu_inst_reg_we <= '0';
-                status <= fetch;
-
-
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
                 when others =>
-                -- reset
-                status <= fetch;
+                status <= init;
             end case;
         end if;
    end process;
-
-   --process
-    --begin
-        --wait for 10 ns;
-        --report "res: " & to_string(alu_out);
-        --report "zf: " & to_string(zero_flag);
-        --report "sf: " & to_string(sign_flag);
-    --end process;
 end behavioral;
