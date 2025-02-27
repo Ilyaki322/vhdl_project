@@ -115,6 +115,13 @@ architecture Behavioral of HazardUnit is
         end if;
         return false;
     end function;
+
+    ----------------------------------------------------------------------------
+    function Instruction_to_slv(instr : Instruction) return std_logic_vector is
+        begin
+            return instr.opcode & instr.dest & instr.src1 & instr.src2;
+        end function;
+        
     ----------------------------------------------------------------------------
     --Process
     ----------------------------------------------------------------------------
@@ -146,7 +153,6 @@ begin
                         else
                             load_count <= load_count + 1;
                         end if;
-
                         counter := counter + 1;
 
                     when RUN_STATE =>
@@ -156,13 +162,11 @@ begin
                             dep_stage1 := true;
                         end if;
 
-                        instr_out <= instr_buffer(to_integer(idx0)).opcode & instr_buffer(to_integer(idx0)).dest
-                                     & instr_buffer(to_integer(idx0)).src1 & instr_buffer(to_integer(idx0)).src2;
-
-                        counter := counter + 1;
+                        instr_out <= Instruction_to_slv(instr_buffer(to_integer(idx0)));
                         
                         instr_buffer(to_integer(idx0)) <= instr_in;
                         pointer <= next_pointer(pointer);
+                        counter := counter + 1;
 
                         if dep_stage0 then
                             current_state <= STALL_STATE;
