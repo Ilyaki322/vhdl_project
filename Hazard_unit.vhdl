@@ -156,6 +156,11 @@ begin
                         counter := counter + 1;
 
                     when RUN_STATE =>
+                    if instr_buffer(to_integer(idx0)).opcode = "1110" then
+                        instr_out <= (others => '0');
+                        counter := to_integer(unsigned(instr_buffer(to_integer(idx0)).src1 & instr_buffer(to_integer(idx0)).src2));
+                        current_state <= START_STATE;
+                    else
                         if check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx1))) then
                             dep_stage0 := true;
                         elsif check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx2))) then
@@ -177,6 +182,8 @@ begin
                             stall_counter <= 2;
                             dep_stage1 := false;
                         end if;
+
+                    end if;
 
                     when STALL_STATE =>
                         if stall_counter = 1 then

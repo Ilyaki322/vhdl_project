@@ -13,6 +13,8 @@ assembly_to_bin = {
     "SHR":   "1011",
     "CMP":   "1100",
     "MOV":   "1101",
+    "JMP":   "1110",
+    "JE":    "1111",
 }
 
 register_address = {
@@ -30,6 +32,10 @@ def assemble_instruction(instruction):
         return "0000000000000000"
     if len(parts) == 2:
         opcode = assembly_to_bin.get(parts[0].upper(), None)
+        if parts[0] == 'JMP' or parts[0] == 'JE':
+            add_imm = f"{int(parts[1]):08b}"
+            return f"{opcode}0000{add_imm}"
+
         register = register_address.get(parts[1].upper(), None)
         return f"{opcode}{register}{register}0000"
     if len(parts) == 3:
