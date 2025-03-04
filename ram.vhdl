@@ -31,20 +31,21 @@ begin
     begin
         if reset = '0' then
             data <= (others => (others => '0'));
+            data_bus <= (others => '0');
         end if;
 
         if rising_edge(clk) then
             if read_enable = '0' then
                 data_bus <= data(to_integer(unsigned(address)));
-                report "RAM READ: Address=" & integer'image(to_integer(unsigned(address))) &
-                       " Data=" & to_string(data(to_integer(unsigned(address))))
-                       severity note;
+                --report "RAM READ: Address=" & integer'image(to_integer(unsigned(address))) &
+                       --" Data=" & to_string(data(to_integer(unsigned(address))))
+                       --severity note;
             end if;
             if write_enable = '0' then
                 data(to_integer(unsigned(address))) <= data_busIn;
-                report "RAM WRITE: Address=" & integer'image(to_integer(unsigned(address))) &
-                       " Data=" & to_string(data_busIn)
-                       severity note;
+                --report "RAM WRITE: Address=" & integer'image(to_integer(unsigned(address))) &
+                       --" Data=" & to_string(data_busIn)
+                       --severity note;
             end if;
         end if;
     end process;

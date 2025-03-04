@@ -41,6 +41,12 @@ architecture loadprog of cpuTB is
     -- Clock Period
     constant clk_period : time := 10 ns;
 
+    signal reg1_test : std_logic_vector(15 downto 0);
+    signal reg2_test : std_logic_vector(15 downto 0);
+    signal reg3_test : std_logic_vector(15 downto 0);
+    signal reg4_test : std_logic_vector(15 downto 0);
+    signal mem_test : std_logic_vector(15 downto 0);
+
 begin
 
     -- Instantiate the CPU
@@ -56,6 +62,7 @@ begin
             external_addr_tb,
             external_load_tb
         );
+
 
     -- Clock Process
     clk_process : process
@@ -106,6 +113,38 @@ begin
         load_tb <= '1';          -- CPU executes instructions
         wait for clk_period;
         wait;
+    end process;
+
+    process
+        alias reg1 is << signal .cpuTB.uut.reg1.data : std_logic_vector(15 downto 0)>>;
+        alias reg2 is << signal .cpuTB.uut.reg2.data : std_logic_vector(15 downto 0)>>;
+        alias reg3 is << signal .cpuTB.uut.reg3.data : std_logic_vector(15 downto 0)>>;
+        alias reg4 is << signal .cpuTB.uut.reg4.data : std_logic_vector(15 downto 0)>>;
+        alias main_mem is << signal .cpuTB.uut.main_mem.data_busIn : std_logic_vector(15 downto 0)>>;
+
+    begin
+        reg1_test <= reg1;
+        reg2_test <= reg2;
+        reg3_test <= reg3;
+        reg4_test <= reg4;
+        mem_test <= main_mem;
+
+        if reg1_test /= reg1 then
+            report "REG1: " & to_hstring(reg1);
+        end if;
+        if reg2_test /= reg2 then
+            report "REG2: " & to_hstring(reg2);
+        end if;
+        if reg3_test /= reg3 then
+            report "REG3: " & to_hstring(reg3);
+        end if;
+        if reg4_test /= reg4 then
+            report "REG4: " & to_hstring(reg4);
+        end if;
+        if mem_test /= main_mem then
+            report "MAIN_RAM: " & to_hstring(main_mem);
+        end if;
+        wait for 10 ns;
     end process;
 
 end loadprog;

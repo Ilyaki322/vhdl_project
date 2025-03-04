@@ -29,6 +29,7 @@ architecture ALU_Logic of ALU is
                 if reset = '0' then
                     zero_flag <= '0';
                     sign_flag <= '0';
+                    result <= (others => '0');
                 elsif enable = '0' then
                     case op is
                         when "0100" => --Add A+B

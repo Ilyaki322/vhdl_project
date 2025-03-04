@@ -144,7 +144,8 @@ begin
                 load_count     <= 0;
                 stall_counter  <= 0;
                 current_state  <= START_STATE;
-                prog_counter    <= (others => '0');
+                prog_counter   <= (others => '0');
+                instr_out      <= (others => '0');
             elsif rising_edge(clk) and enable = '0' then
                 idx0 := pointer;                           -- stage0 (current)
                 idx1 := next_pointer(pointer);             -- stage1 (second)
@@ -185,14 +186,14 @@ begin
                         counter := to_integer(unsigned(instr_buffer(to_integer(idx0)).src1 & instr_buffer(to_integer(idx0)).src2));
 
                     else
-                    report "instr: " & to_string(instr_buffer(to_integer(idx0)).opcode) &
-                    to_string(instr_buffer(to_integer(idx0)).dest) & 
-                    to_string(instr_buffer(to_integer(idx0)).src1) & 
-                    to_string(instr_buffer(to_integer(idx0)).src2);
+                    --report "instr: " & to_string(instr_buffer(to_integer(idx0)).opcode) &
+                    --to_string(instr_buffer(to_integer(idx0)).dest) & 
+                    --to_string(instr_buffer(to_integer(idx0)).src1) & 
+                    --to_string(instr_buffer(to_integer(idx0)).src2);
 
-                    report "Ptr: " & to_string(pointer);
-                    report "Counter: " & to_string(counter);
-                    
+                    --report "Ptr: " & to_string(pointer);
+                    --report "Counter: " & to_string(counter);
+
                         if check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx1))) then
                             dep_stage0 := true;
                         elsif check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx2))) then
