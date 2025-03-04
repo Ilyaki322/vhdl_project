@@ -68,13 +68,15 @@ architecture ALU_Logic of ALU is
                         when "1101" => -- MOV
                         result(7 downto 0) <= arg_a;
 
+                        when "0000" => result <= std_logic_vector(to_unsigned(1, result'length));
+                        
                         when others =>
                         result <= (others => '0');
                     end case;
 
                     if unsigned(result) = 0 then
                         zero_flag <= '1';
-                    else
+                    elsif unsigned(result) /= 0 or op = "0000" then
                         zero_flag <= '0';
                     end if;
     

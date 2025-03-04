@@ -27,6 +27,7 @@ use work.CPU_Types.all;
 entity HazardUnit is
     Port (
         clk, reset, enable : in std_logic;
+        zero_flag : in std_logic;
         instr_in      : in  Instruction;
         instr_out   : out std_logic_vector(15 downto 0);
         prog_counter : out std_logic_vector(15 downto 0) := (others => '0')
@@ -36,12 +37,14 @@ end HazardUnit;
 architecture Behavioral of HazardUnit is
     type InstrArray is array (0 to 2) of Instruction;
     signal instr_buffer : InstrArray := (others => NOP);
+    signal cond_instr_buffer : InstrArray := (others => NOP);
     signal pointer      : unsigned(1 downto 0) := "00";
+    signal cond_pointer : unsigned(1 downto 0) := "00";
 
     ----------------------------------------------------------------------------
     -- State Machine Declaration
     ----------------------------------------------------------------------------
-    type state_type is (START_STATE, RUN_STATE, STALL_STATE);
+    type state_type is (START_STATE, RUN_STATE, STALL_STATE, COND_JUMP_STATE);
     signal current_state : state_type := START_STATE;
     signal load_count    : integer range 0 to 2 := 0;  -- count loaded instructions (0 to 2)
     signal stall_counter : integer range 0 to 3 := 0;  -- counts stall cycles
@@ -130,6 +133,10 @@ begin
             variable idx0, idx1, idx2 : unsigned(1 downto 0);
             variable dep_stage0, dep_stage1 : boolean;
             variable counter : integer := 0;
+
+            variable cond_counter : integer := 0;
+            variable cond_load : integer := 0;
+            variable cond_delay : integer := 0;
         begin
             if reset = '0' then
                 instr_buffer   <= (others => NOP);
@@ -149,18 +156,43 @@ begin
                         if load_count = 2 then
                             pointer <= "00";
                             current_state <= RUN_STATE;
-                            instr_out <= NOP.opcode & NOP.dest & NOP.src1 & NOP.src2;
+                            --instr_out <= NOP.opcode & NOP.dest & NOP.src1 & NOP.src2;
+                            instr_out <= (others => '0');
                         else
                             load_count <= load_count + 1;
                         end if;
                         counter := counter + 1;
+                        instr_out <= (others => '0');
 
                     when RUN_STATE =>
                     if instr_buffer(to_integer(idx0)).opcode = "1110" then
                         instr_out <= (others => '0');
                         counter := to_integer(unsigned(instr_buffer(to_integer(idx0)).src1 & instr_buffer(to_integer(idx0)).src2));
                         current_state <= START_STATE;
+
+                    elsif instr_buffer(to_integer(idx0)).opcode = "1111" then
+
+                        instr_out <= (others => '0');
+                        instr_buffer(to_integer(idx0)) <= instr_in;
+                        pointer <= next_pointer(pointer);
+                        counter := counter + 1;
+
+                        cond_pointer <= pointer;
+                        pointer <= "00";
+                        current_state <= COND_JUMP_STATE;
+                        load_count <= 0;
+                        cond_counter := counter;
+                        counter := to_integer(unsigned(instr_buffer(to_integer(idx0)).src1 & instr_buffer(to_integer(idx0)).src2));
+
                     else
+                    report "instr: " & to_string(instr_buffer(to_integer(idx0)).opcode) &
+                    to_string(instr_buffer(to_integer(idx0)).dest) & 
+                    to_string(instr_buffer(to_integer(idx0)).src1) & 
+                    to_string(instr_buffer(to_integer(idx0)).src2);
+
+                    report "Ptr: " & to_string(pointer);
+                    report "Counter: " & to_string(counter);
+                    
                         if check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx1))) then
                             dep_stage0 := true;
                         elsif check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx2))) then
@@ -172,7 +204,7 @@ begin
                         instr_buffer(to_integer(idx0)) <= instr_in;
                         pointer <= next_pointer(pointer);
                         counter := counter + 1;
-
+                        
                         if dep_stage0 then
                             current_state <= STALL_STATE;
                             stall_counter <= 3;
@@ -193,6 +225,39 @@ begin
                             stall_counter <= stall_counter - 1;
                             instr_out <= NOP.opcode & NOP.dest & NOP.src1 & NOP.src2;
                         end if;
+
+                    when COND_JUMP_STATE =>
+                    --cond_instr_buffer(load_count) <= instr_in;
+                    if load_count = 2 then
+                        if cond_load < 3 then
+                            cond_instr_buffer(cond_load) <= instr_in;
+                            --report "instr: " & to_string(instr_in.opcode) & to_string(instr_in.dest) & to_string(instr_in.src1) & to_string(instr_in.src2);
+                        end if;
+
+                        if cond_load = 3 then
+                            current_state <= RUN_STATE;
+                            if zero_flag = '1' then
+                                instr_buffer <= cond_instr_buffer;
+                                pointer <= "00";
+
+                            else
+                                pointer <= cond_pointer;
+                                counter := cond_counter;
+                            end if;
+                            
+                        else
+                            cond_load := cond_load + 1;
+                            
+                        end if;
+                    else
+                        load_count <= load_count + 1;
+                    end if;
+
+                    instr_out <= (others => '0');
+                    if cond_load < 2 then
+                        counter := counter + 1; 
+                    end if;
+
                 end case;
             end if;
             prog_counter <= std_logic_vector(to_unsigned(counter, prog_counter'length));
