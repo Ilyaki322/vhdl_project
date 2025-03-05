@@ -186,14 +186,6 @@ begin
                         counter := to_integer(unsigned(instr_buffer(to_integer(idx0)).src1 & instr_buffer(to_integer(idx0)).src2));
 
                     else
-                    --report "instr: " & to_string(instr_buffer(to_integer(idx0)).opcode) &
-                    --to_string(instr_buffer(to_integer(idx0)).dest) & 
-                    --to_string(instr_buffer(to_integer(idx0)).src1) & 
-                    --to_string(instr_buffer(to_integer(idx0)).src2);
-
-                    --report "Ptr: " & to_string(pointer);
-                    --report "Counter: " & to_string(counter);
-
                         if check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx1))) then
                             dep_stage0 := true;
                         elsif check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx2))) then
@@ -228,36 +220,32 @@ begin
                         end if;
 
                     when COND_JUMP_STATE =>
-                    --cond_instr_buffer(load_count) <= instr_in;
                     if load_count = 2 then
                         if cond_load < 3 then
                             cond_instr_buffer(cond_load) <= instr_in;
-                            --report "instr: " & to_string(instr_in.opcode) & to_string(instr_in.dest) & to_string(instr_in.src1) & to_string(instr_in.src2);
                         end if;
-
+                
                         if cond_load = 3 then
                             current_state <= RUN_STATE;
                             if zero_flag = '1' then
                                 instr_buffer <= cond_instr_buffer;
                                 pointer <= "00";
-
+                                --counter := counter + 1;
                             else
                                 pointer <= cond_pointer;
                                 counter := cond_counter;
                             end if;
-                            
                         else
                             cond_load := cond_load + 1;
-                            
                         end if;
                     else
                         load_count <= load_count + 1;
                     end if;
 
-                    instr_out <= (others => '0');
-                    if cond_load < 2 then
-                        counter := counter + 1; 
+                    if cond_load /= 2 then
+                    counter := counter + 1;
                     end if;
+                    instr_out <= (others => '0');
 
                 end case;
             end if;

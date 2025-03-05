@@ -47,6 +47,12 @@ architecture loadprog of cpuTB is
     signal reg4_test : std_logic_vector(15 downto 0);
     signal mem_test : std_logic_vector(15 downto 0);
 
+    signal reg1_we : std_logic;
+    signal reg2_we : std_logic;
+    signal reg3_we : std_logic;
+    signal reg4_we : std_logic;
+    signal mem_we : std_logic;
+
 begin
 
     -- Instantiate the CPU
@@ -122,26 +128,37 @@ begin
         alias reg4 is << signal .cpuTB.uut.reg4.data : std_logic_vector(15 downto 0)>>;
         alias main_mem is << signal .cpuTB.uut.main_mem.data_busIn : std_logic_vector(15 downto 0)>>;
 
+        alias reg1we is << signal .cpuTB.uut.reg1.we : std_logic>>;
+        alias reg2we is << signal .cpuTB.uut.reg2.we : std_logic>>;
+        alias reg3we is << signal .cpuTB.uut.reg3.we : std_logic>>;
+        alias reg4we is << signal .cpuTB.uut.reg4.we : std_logic>>;
+        alias main_memwe is << signal .cpuTB.uut.main_mem.write_enable : std_logic>>;
+
     begin
         reg1_test <= reg1;
+        reg1_we <= reg1we;
         reg2_test <= reg2;
+        reg2_we <= reg2we;
         reg3_test <= reg3;
+        reg3_we <= reg3we;
         reg4_test <= reg4;
+        reg4_we <= reg4we;
         mem_test <= main_mem;
+        mem_we <= main_memwe;
 
-        if reg1_test /= reg1 then
+        if reg1_we = '0' then
             report "REG1: " & to_hstring(reg1);
         end if;
-        if reg2_test /= reg2 then
+        if reg2_we = '0' then
             report "REG2: " & to_hstring(reg2);
         end if;
-        if reg3_test /= reg3 then
+        if reg3_we = '0' then
             report "REG3: " & to_hstring(reg3);
         end if;
-        if reg4_test /= reg4 then
+        if reg4_we = '0' then
             report "REG4: " & to_hstring(reg4);
         end if;
-        if mem_test /= main_mem then
+        if mem_we /= main_memwe then
             report "MAIN_RAM: " & to_hstring(main_mem);
         end if;
         wait for 10 ns;
