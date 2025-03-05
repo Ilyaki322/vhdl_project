@@ -230,7 +230,8 @@ begin
                             if zero_flag = '1' then
                                 instr_buffer <= cond_instr_buffer;
                                 pointer <= "00";
-                                --counter := counter + 1;
+                                cond_load := 0;
+                                
                             else
                                 pointer <= cond_pointer;
                                 counter := cond_counter;
