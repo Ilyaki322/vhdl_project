@@ -94,12 +94,12 @@ architecture Behavioral of HazardUnit is
     function check_dependency(current_inst, next_inst : Instruction) return boolean is
     begin
 
-        --LOAD OR LOADI next is STORE
-        if (current_inst.opcode = "0001" or current_inst.opcode = "0011") and next_inst.opcode = "0010" then
+        --LOAD OR LOADI or MOV next is STORE
+        if (current_inst.opcode = "0001" or current_inst.opcode = "0011" or current_inst.opcode = "1101") and next_inst.opcode = "0010" then
             return register_dependency(current_inst.dest, next_inst.dest);
 
-        --LOAD OR LOADI next is ALU
-        elsif (current_inst.opcode = "0001" or current_inst.opcode = "0011") and isALUOp(next_inst.opcode) then
+        --LOAD OR LOADI OR MOV next is ALU
+        elsif (current_inst.opcode = "0001" or current_inst.opcode = "0011" or current_inst.opcode = "1101" ) and isALUOp(next_inst.opcode) then
             return (register_dependency(current_inst.dest, next_inst.src1) or register_dependency(current_inst.dest, next_inst.src2));
         
         --STORE next is LOAD
@@ -219,11 +219,11 @@ begin
 
                     when STALL_STATE =>
                                 
-                        if stall_counter = 1 then
+                        if stall_counter = 2 then
                             counter := counter + 1;
                         end if;
 
-                        if stall_counter = 2 then
+                        if stall_counter = 3 then
                             current_state <= RUN_STATE;
                             stall_counter := 0;
                             counter := counter + 1;
@@ -235,7 +235,6 @@ begin
 
                     when COND_JUMP_STATE =>
                         if zero_flag = '1' then
-                            report "JUMP DELAY" & integer'image(jump_delay);
                         end if;
 
                         if jump_delay = 5 then
