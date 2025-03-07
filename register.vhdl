@@ -10,10 +10,13 @@ entity general_register is
         clk : in std_logic;
         reset : in std_logic;
 
-        we : in std_logic;
-        re : in std_logic;
+        we_1 : in std_logic;
+        we_2 : in std_logic;
+        re_1 : in std_logic;
+        re_2 : in std_logic;
 
-        data_bus : in std_logic_vector(WIDTH-1 downto 0);
+        data_bus_1 : in std_logic_vector(WIDTH-1 downto 0);
+        data_bus_2 : in std_logic_vector(WIDTH-1 downto 0);
         register_data : out std_logic_vector(WIDTH-1 downto 0)
     );
 end general_register;
@@ -29,15 +32,17 @@ begin
         end if;
 
         if rising_edge(clk) then
-            if re = '0' then
+            if re_1 = '0' or re_2 = '0' then
                 register_data <= data;
-                --report "REGISTER READ: Data output on bus: " & to_hstring(data)
-                        --severity note;
             end if;
-            if we = '0' then
-                data <= data_bus;
-                --report "REGISTER WRITE: Data written from bus: " & to_hstring(data_bus)
-                        --severity note;
+            if we_1 = '0' and we_2 = '0' then
+                data <= data_bus_2;
+
+            elsif we_1 = '0' and we_2 = '1' then
+                data <= data_bus_1;
+
+            elsif we_1 = '1' and we_2 = '0' then
+                data <= data_bus_2;
             end if;
         end if;
     end process;

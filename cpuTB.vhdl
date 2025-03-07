@@ -126,12 +126,12 @@ begin
         alias reg2 is << signal .cpuTB.uut.reg2.data : std_logic_vector(15 downto 0)>>;
         alias reg3 is << signal .cpuTB.uut.reg3.data : std_logic_vector(15 downto 0)>>;
         alias reg4 is << signal .cpuTB.uut.reg4.data : std_logic_vector(15 downto 0)>>;
-        alias main_mem is << signal .cpuTB.uut.main_mem.data_busIn : std_logic_vector(15 downto 0)>>;
+        alias main_mem is << signal .cpuTB.uut.main_mem.data_bus_in : std_logic_vector(15 downto 0)>>;
 
-        alias reg1we is << signal .cpuTB.uut.reg1.we : std_logic>>;
-        alias reg2we is << signal .cpuTB.uut.reg2.we : std_logic>>;
-        alias reg3we is << signal .cpuTB.uut.reg3.we : std_logic>>;
-        alias reg4we is << signal .cpuTB.uut.reg4.we : std_logic>>;
+        alias reg1we is << signal .cpuTB.uut.reg1.we_1 : std_logic>>;
+        alias reg2we is << signal .cpuTB.uut.reg2.we_1 : std_logic>>;
+        alias reg3we is << signal .cpuTB.uut.reg3.we_1 : std_logic>>;
+        alias reg4we is << signal .cpuTB.uut.reg4.we_1 : std_logic>>;
         alias main_memwe is << signal .cpuTB.uut.main_mem.write_enable : std_logic>>;
 
     begin

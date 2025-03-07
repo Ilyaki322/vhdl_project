@@ -91,28 +91,14 @@ architecture behavioral of control_unit_v2 is
         clk : in std_logic;
         reset : in std_logic;
 
-        we : in std_logic;
-        re : in std_logic;
+        we_1 : in std_logic;
+        we_2 : in std_logic;
+        re_1 : in std_logic;
+        re_2 : in std_logic;
 
-        data_bus : in std_logic_vector(WIDTH-1 downto 0);
+        data_bus_1 : in std_logic_vector(WIDTH-1 downto 0);
+        data_bus_2 : in std_logic_vector(WIDTH-1 downto 0);
         register_data : out std_logic_vector(WIDTH-1 downto 0)
-    );
-    end component;
-
-    component ram
-    Generic (
-        WIDTH : integer := 16;
-        SIZE : integer := 8
-    );
-    Port(
-        clk : in std_logic;
-        reset : in std_logic;
-
-        read_enable : in std_logic;
-        write_enable : in std_logic;
-
-        address : in std_logic_vector(WIDTH-1 downto 0);
-        data_bus : inout std_logic_vector(WIDTH-1 downto 0)
     );
     end component;
 
@@ -160,7 +146,7 @@ begin
 
     inst_reg : general_register
     generic map(WIDTH)
-    port map(clk, reset, inst_we, inst_re, inst, inst_reg_data_out);
+    port map(clk, reset, inst_we, '1', inst_re, '1', inst, (others => '0'), inst_reg_data_out);
 
     inst_decoder : decoder
     generic map(DECODER_WIDTH)
@@ -274,11 +260,4 @@ begin
 
         end if;
     end process;
-
-    --process
-    --begin
-        --report "bus = " & to_string(decoder_bus(4)) & " " & to_string(op1)  & " " & to_string(op2);
-        --report "shift = " & to_string(addr_delay_shift);
-        --wait for 10 ns;
-    --end process;
 end behavioral;
