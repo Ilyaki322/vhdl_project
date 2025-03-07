@@ -271,9 +271,10 @@ architecture behavioral of cpu is
     component HazardUnit
         Port (
             clk, reset, enable : in std_logic;
-            zero_flag : in std_logic;
+            zero_flag, zero_flag2 : in std_logic;
             instr_in      : in  Instruction;
             instr_out   : out std_logic_vector(15 downto 0);
+            instr_parallel : out std_logic_vector(15 downto 0);
             prog_counter : out std_logic_vector(15 downto 0) := (others => '0')
         );
         end component;
@@ -373,10 +374,10 @@ begin
     reg_out_mux_sel_2, reg_selector_3, reg_selector_4, data_bus_mux_sel_nat_2);
 
     hazard_u : HazardUnit
-    port map(clk => clk, reset => reset, enable => enable, zero_flag => zero_flag, instr_in.opcode => instruction_bus(15 downto 12),
+    port map(clk => clk, reset => reset, enable => enable, zero_flag => zero_flag, zero_flag2 => zero_flag_2, instr_in.opcode => instruction_bus(15 downto 12),
                                  instr_in.dest => instruction_bus(11 downto 8),
                                  instr_in.src1 => instruction_bus(7 downto 4),
-                                 instr_in.src2 => instruction_bus(3 downto 0),instr_out => hazard_out_inst, prog_counter => progCounter);
+                                 instr_in.src2 => instruction_bus(3 downto 0),instr_out => hazard_out_inst,instr_parallel => hazard_out_inst2, prog_counter => progCounter);
 
     loadRun_nat <= 0 when external_load = '0' else 1;
     resized_instruction_data <= std_logic_vector(resize(unsigned(instruction_bus(7 downto 0)), WIDTH));

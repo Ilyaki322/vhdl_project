@@ -21,6 +21,7 @@ entity ALU is
 end entity ALU;
 
 architecture ALU_Logic of ALU is
+    signal zero_delay : std_logic_vector(1 downto 0) := (others => '0');
     begin
         process(clk)
             constant zero_vec : std_logic_vector(WIDTH-1 downto 0) := (others => '0'); --Zero vector for padding
@@ -30,6 +31,7 @@ architecture ALU_Logic of ALU is
                     zero_flag <= '0';
                     sign_flag <= '0';
                     result <= (others => '0');
+                    zero_delay <= (others => '0');
                 elsif enable = '0' then
                     case op is
                         when "0100" => --Add A+B
@@ -38,10 +40,12 @@ architecture ALU_Logic of ALU is
 
                         when "0101" => --Sub A-B
                         result <= std_logic_vector(resize(signed(arg_a), result'length) - 
-                                                   resize(signed(arg_b), result'length));
-
+                                                   resize(signed(arg_b), result'length));                             
                         when "0110" => -- Mult A*B
                         result <= std_logic_vector(resize(signed(arg_a) * signed(arg_b), result'length));
+                            if unsigned(result) = 0 then
+                                zero_flag <= '1';
+                            end if; 
 
                         when "0111" =>  -- OR: A or B
                         result(7 downto 0) <= std_logic_vector(unsigned(arg_a) OR unsigned(arg_b));
@@ -70,19 +74,21 @@ architecture ALU_Logic of ALU is
                         result(7 downto 0) <= arg_a;
 
                         when "0000" => result <= std_logic_vector(to_unsigned(1, result'length));
-                        
                         when others =>
                         result <= (others => '0');
                     end case;
+                    
+                    if unsigned(result) = 0 and op /= "0000" and rising_edge(clk) then
+                        zero_delay(1) <= '1';
+                    else
+                        zero_delay(1) <= '0';
+                    end if; 
 
-                    if unsigned(result) = 0 then
-                        zero_flag <= '1';
-                    elsif unsigned(result) /= 0 or op = "0000" then
-                        zero_flag <= '0';
+                    if enable = '0' then
+                        zero_delay(0) <= zero_delay(1);
                     end if;
-    
                     sign_flag <= result(result'length - 1);
-
+                    zero_flag <= zero_delay(0) or zero_delay(1);
                 end if;
             --end if;
         end process;
