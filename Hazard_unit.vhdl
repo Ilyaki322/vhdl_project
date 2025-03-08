@@ -234,15 +234,11 @@ begin
                         instr_parallel <= NOP.opcode & NOP.dest & NOP.src1 & NOP.src2;
 
                     when COND_JUMP_STATE =>
-                        if zero_flag = '1' then
-                            report "JUMP DELAY" & integer'image(jump_delay);
-                        end if;
-
                         if jump_delay = 5 then
-                            if zero_flag2 = '1' then
+                            if zero_flag2 = '1' and parallel_on then
                                     jump_on_cond := true;
                                     parallel_on := false;
-                            elsif zero_flag = '1' then
+                            elsif zero_flag = '1' and (not parallel_on) then
                                 jump_on_cond := true;
                             else
                                 counter := counter + 1;
