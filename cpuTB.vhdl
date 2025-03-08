@@ -123,7 +123,7 @@ begin
         wait;
     end process;
 
-    process
+    process(clk_tb)
         alias reg1 is << signal .cpuTB.uut.reg1.data : std_logic_vector(15 downto 0)>>;
         alias reg2 is << signal .cpuTB.uut.reg2.data : std_logic_vector(15 downto 0)>>;
         alias reg3 is << signal .cpuTB.uut.reg3.data : std_logic_vector(15 downto 0)>>;
@@ -155,6 +155,7 @@ begin
         mem_test <= main_mem;
         mem_we <= main_memwe;
 
+    if rising_edge(clk_tb) then
         if reg1_we = '0' or reg1_we2 = '0' then
             report "REG1: " & to_hstring(reg1);
         end if;
@@ -167,10 +168,11 @@ begin
         if reg4_we = '0' or reg4_we2 = '0' then
             report "REG4: " & to_hstring(reg4);
         end if;
-        if mem_we /= main_memwe then
-            report "MAIN_RAM: " & to_hstring(main_mem);
-        end if;
-        wait for 10 ns;
+    end if;
+    
+    if mem_we /= main_memwe then
+        report "MAIN_RAM: " & to_hstring(main_mem);
+    end if;
     end process;
 
 end loadprog;
