@@ -88,11 +88,14 @@ architecture Behavioral of HazardUnit is
     function isALUOp(op : std_logic_vector(3 downto 0)) return boolean is
         begin
             return (unsigned(op) >= to_unsigned(4, op'length)) and
-                   (unsigned(op) <= to_unsigned(11, op'length));
+                   (unsigned(op) <= to_unsigned(13, op'length));
     end function;
     ----------------------------------------------------------------------------
     function check_dependency(current_inst, next_inst : Instruction) return boolean is
     begin
+        if current_inst.opcode = "0000" or next_inst.opcode = "1110" or next_inst.opcode = "1111" then
+            return false;
+        end if;
 
         --LOAD OR LOADI next is STORE
         if (current_inst.opcode = "0001" or current_inst.opcode = "0011") and next_inst.opcode = "0010" then
@@ -186,22 +189,24 @@ begin
                             current_state <= START_STATE;
 
                         else
-                            if check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx1))) then
+                            if instr_buffer(to_integer(idx0)) = NOP then
+                                parallel_on := false;
+                            elsif check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx1))) then
                                 dep_stage0 := true;
                                 parallel_on := false;
                             elsif check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx2))) then
                                 dep_stage0 := true;
                                 parallel_on := false;
-                            elsif (isALUOp(instr_buffer(to_integer(idx0)).opcode) and isALUOp(instr_buffer(to_integer(idx1)).opcode)) then
-                                if check_dependency(instr_buffer(to_integer(idx1)), instr_buffer(to_integer(idx2))) then
+                            elsif (not check_dependency(instr_buffer(to_integer(idx0)), instr_buffer(to_integer(idx1)))) and
+                             not (instr_buffer(to_integer(idx1)).opcode = "1111" or instr_buffer(to_integer(idx1)).opcode = "1110") then
+                                if check_dependency(instr_buffer(to_integer(idx1)), instr_buffer(to_integer(idx2))) or
+                                    check_dependency(instr_buffer(to_integer(idx1)), instr_in) then
                                     dep_stage0 := true;
                                     parallel_on := true;
                                 end if;
                                 instr_parallel <= Instruction_to_slv(instr_buffer(to_integer(idx1)));
                                 instr_buffer(to_integer(idx1)) <= NOP;
                                 pointer <= next_pointer(pointer);
-                            else
-                                parallel_on := false;
                             end if;
                                     
                             instr_out <= Instruction_to_slv(instr_buffer(to_integer(idx0)));

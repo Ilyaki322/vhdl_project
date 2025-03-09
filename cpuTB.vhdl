@@ -155,7 +155,7 @@ begin
         mem_test <= main_mem;
         mem_we <= main_memwe;
 
-    if rising_edge(clk_tb) then
+    if falling_edge(clk_tb) then
         if reg1_we = '0' or reg1_we2 = '0' then
             report "REG1: " & to_hstring(reg1);
         end if;
