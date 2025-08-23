@@ -2,17 +2,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.mux_p;
 
-entity cu_tb is
-end cu_tb;
+entity cu_v2_tb is
+end cu_v2_tb;
 
-architecture behevioural of cu_tb is
+architecture behevioural of cu_v2_tb is
     constant WIDTH : integer := 16;
 
     signal enable : std_logic := '0';
     signal clk : std_logic := '0';
     signal reset : std_logic := '0';
 
-    signal exec_en : std_logic;
     signal inst_we : std_logic;
     signal inst_re : std_logic;
     signal inst : std_logic_vector(WIDTH-1 downto 0);
@@ -30,9 +29,15 @@ architecture behevioural of cu_tb is
     signal main_mem_we : std_logic;
     signal main_mem_addr : std_logic_vector(WIDTH-1 downto 0);
     
-    signal main_data_bus_mux_sel : std_logic;
+    signal opc : std_logic_vector(3 downto 0) := (others => '0');
+    signal alu_en : std_logic;
 
-    component control_unit
+    signal reg_sel : natural;
+    signal op1 : natural;
+    signal op2 : natural;
+    signal main_data_bus_mux_sel : natural;
+
+    component control_unit_v2
     Generic (
         WIDTH : integer := 16
     );
@@ -41,7 +46,6 @@ architecture behevioural of cu_tb is
         clk : in std_logic;
         reset : in std_logic;
 
-        exec_en : in std_logic;
         inst_we : in std_logic; 
         inst_re : in std_logic;
         inst : in std_logic_vector(WIDTH-1 downto 0);
@@ -55,7 +59,13 @@ architecture behevioural of cu_tb is
         main_mem_we : out std_logic;
         main_mem_addr : out std_logic_vector(WIDTH-1 downto 0);
 
-        main_data_bus_mux_sel : out std_logic
+        opc : out std_logic_vector(3 downto 0);
+        alu_en : out std_logic;
+
+        reg_sel : out natural;
+        op1 : out natural;
+        op2 : out natural;
+        main_data_bus_mux_sel : out natural
     );
     end component;
 
@@ -66,17 +76,16 @@ begin
         clk <= '1'; wait for 5 ns;
     end process;
 
-    UUT : control_unit
+    UUT : control_unit_v2
         generic map(WIDTH)
-        port map(enable, clk, reset, exec_en, inst_we, inst_re, inst,
+        port map(enable, clk, reset, inst_we, inst_re, inst,
          reg1_we, reg1_re, reg2_we, reg2_re, reg3_we, reg3_re, reg4_we, reg4_re,
-         main_mem_re, main_mem_we, main_mem_addr, main_data_bus_mux_sel);
+         main_mem_re, main_mem_we, main_mem_addr, opc, alu_en, reg_sel, op1, op2, main_data_bus_mux_sel);
 
     reset <= '0', '1' after 20 ns;
     inst <= "0011001000001111";
     enable <= '1', '0' after 20 ns;
     inst_we <= '0', '0' after 20 ns, '1' after 40 ns;
     inst_re <= '1', '0' after 40 ns;
-    exec_en <= '0';
 
 end behevioural;

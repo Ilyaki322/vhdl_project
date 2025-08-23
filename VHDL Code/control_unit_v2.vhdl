@@ -3,6 +3,17 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.mux_p;
 
+-------------------------------------------------------------------------------
+-- File: control_unit_v2.vhdl
+-- Description: this component manages the instruction pipeline.
+-- contains several shift registers to make sure that each part of the pipeline
+-- works and recieves needed data on time.
+-- it recieves a 16bit instuction, and 'delays' parts of it to activate it
+-- in the correct phase of the pipeline
+-- for example, the target of the instuction is only used at the last writeback stage
+-- so we shift it for 4 clocks.
+-------------------------------------------------------------------------------
+
 entity control_unit_v2 is
     Generic (
         WIDTH : integer := 16
@@ -39,15 +50,14 @@ end control_unit_v2;
 
 architecture behavioral of control_unit_v2 is
 
+    type natural_shift_array is array (0 to 2) of natural;
+
+    -------------------------------------------------CONSTANTS-----------------------------------------------
     constant DECODER_WIDTH : integer := 4;
     constant REG_DECODER_WIDTH : integer := 4;
+    ---------------------------------------------------------------------------------------------------------
 
-    -- Shift Registers for delay
-    type natural_shift_array is array (0 to 2) of natural;  -- 3-stage delay
-    signal data_sel_shift : natural_shift_array := (others => 0);
-    signal op1_shift : natural_shift_array := (others => 0);
-    signal op2_shift : natural_shift_array := (others => 0);
-
+    ----------------------------------------------in/out signals---------------------------------------------
     signal op1_sig : natural := 0;
     signal op2_sig : natural := 0;
 
@@ -63,11 +73,13 @@ architecture behavioral of control_unit_v2 is
 
     signal load_from : std_logic_vector(7 downto 0) := (others => '0');
 
-    signal target_delay_1 : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
-    signal target_delay_2 : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
     signal target : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
     signal store_target : std_logic_vector(3 downto 0) := (others => '0');
 
+    signal data_sel : natural := 0;
+    ---------------------------------------------------------------------------------------------------------
+    
+    ---------------------------------------Shift Registers for delay-----------------------------------------
     signal opc_delay_shift : std_logic_vector(3*4-1 downto 0) := (others => '0');
     signal target_delay_shift : std_logic_vector(4*REG_DECODER_WIDTH-1 downto 0) := (others => '0');
     signal addr_delay_shift : std_logic_vector(4*WIDTH-1 downto 0) := (others => '0');
@@ -78,11 +90,18 @@ architecture behavioral of control_unit_v2 is
 
     signal opc_delay_1 : std_logic_vector(3 downto 0) := (others => '0');
     signal opc_delay_2 : std_logic_vector(3 downto 0) := (others => '0');
-    --signal opc_delay_3 : std_logic_vector(3 downto 0) := (others => '0');
 
-    signal data_sel : natural := 0;
     signal data_sel_delay : natural := 0;
 
+    signal target_delay_1 : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
+    signal target_delay_2 : std_logic_vector(REG_DECODER_WIDTH-1 downto 0) := (others => '0');
+
+    signal data_sel_shift : natural_shift_array := (others => 0);
+    signal op1_shift : natural_shift_array := (others => 0);
+    signal op2_shift : natural_shift_array := (others => 0);
+    ---------------------------------------------------------------------------------------------------------
+
+    ---------------------------------------component declerations--------------------------------------------
     component general_register
     Generic (
         WIDTH : integer := 16
@@ -141,9 +160,10 @@ architecture behavioral of control_unit_v2 is
                 return '0';
             end if;
     end function;
+    ---------------------------------------------------------------------------------------------------------
 
 begin
-
+    -------------------------------------component instantinations-------------------------------------------
     inst_reg : general_register
     generic map(WIDTH)
     port map(clk, reset, inst_we, '1', inst_re, '1', inst, (others => '0'), inst_reg_data_out);
@@ -151,14 +171,16 @@ begin
     inst_decoder : decoder
     generic map(DECODER_WIDTH)
     port map(enable, clk, reset, inst_reg_data_out(WIDTH-1 downto WIDTH-DECODER_WIDTH), decoder_bus);
-
     ---------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------
+    -- fetch stage
 
     target_delay_1 <= inst_reg_data_out(WIDTH-5 downto WIDTH-REG_DECODER_WIDTH-4);
     addr_delay_1 <= (WIDTH-9 downto 0 => '0') & inst_reg_data_out(7 downto 0);
     opc_delay_1 <= inst_reg_data_out(WIDTH-1 downto WIDTH-DECODER_WIDTH);
 
     ---------------------------------------------------------------------------------------------------------
+    -- decode + memory stages
 
     op1_sig <= op1_shift(0);
     op2_sig <= op2_shift(0);
@@ -184,8 +206,9 @@ begin
     
 
     ---------------------------------------------------------------------------------------------------------
-
+    -- execute stage
     -- 0 none, 1 alu, 2 ram, 
+
     exec_decodes : decoder 
     generic map(DECODER_WIDTH)
     port map(enable, clk, reset, exec_selector , exec_decoder_bus);
@@ -205,8 +228,9 @@ begin
     data_sel_delay <= data_sel_shift(1);
 
     ---------------------------------------------------------------------------------------------------------
+    -- writeback stage
+    -- 0 none, 1 reg_1, 2 reg_2, 3 reg_3, 4 reg_4, 5 ram
 
-    -- 0 none, 1 reg_1, 2 reg_2, 3 reg_3, 4 reg_4, 5 ram, 6 prog counter
     write_back_decoder : decoder 
     generic map(DECODER_WIDTH)
     port map(enable, clk, reset, target_delay_2 , write_back_decoder_bus);
@@ -217,15 +241,14 @@ begin
     reg4_we <= not write_back_decoder_bus(4);
 
     main_mem_we <= not write_back_decoder_bus(5);
-    main_mem_addr <= addr_delay_shift(WIDTH-1 downto 0) when decoder_bus(1) else addr_delay_2; -- when decoder_bus(1) else addr_delay_3;
-    --main_mem_addr <= addr_delay_2; -- when decoder_bus(1) else addr_delay_3;
+    main_mem_addr <= addr_delay_shift(WIDTH-1 downto 0) when decoder_bus(1) else addr_delay_2;
 
     main_data_bus_mux_sel <= data_sel_delay;
     reg_sel <= to_integer(unsigned(store_target));
     
-    -- PROG COUNTER <= write_back_decoder_bus(6);
     -------------------------------------------------------------------------------------------------------------
 
+    -- this process shifts the shfit registers each clock
     process(clk)
     begin
         if rising_edge(clk) then
