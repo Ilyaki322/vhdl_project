@@ -17,7 +17,7 @@ This README contains:
 
 
 
-### 1. Structure:
+## 1. Structure:
 The project contains 3 directories: vhdl, compiler, documentation
 
 vhdl: contains all the vhdl files used in the project, each file is documented, for specific information
@@ -31,7 +31,7 @@ as well as an RTL - a block diagram that shows how components are connected with
 
 
 
-### 2. Requirements:
+## 2. Requirements:
 
 *Python 3.12.3 or above interpreter, no external libreries required.
 *Intel ModelSim 10.5b or above to compile and run the vhdl code.
@@ -40,7 +40,7 @@ Those are the versions used in the project, earlier versions might work, use wit
 
 
 
-### 3. How to run:
+## 3. How to run:
 
 - Download the files of this project, and make sure you have all the requrements to run it.
 - ModelSim Setup:
