@@ -10,6 +10,8 @@ Dima Nikonov
 ## Overview:
 In this Project, we designed a parallel RISC processor, Using the VHDL language.
 
+The documentation dir includes a short presentation showcasing the design and how it works.
+
 This README contains:
 1. Overview of the project structure.
 2. Requirements to run.
